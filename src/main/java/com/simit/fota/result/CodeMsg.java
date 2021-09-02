@@ -17,9 +17,12 @@ public class CodeMsg {
     public static CodeMsg SESSION_ERROR = new CodeMsg(500210, "Session不存在或已失效");
     public static CodeMsg PASSWORD_EMPTY = new CodeMsg(500211, "密码不能为空");
     public static CodeMsg USER_ERROR = new CodeMsg(500214, "用户不存在");
-    public static CodeMsg PASSWORD_ERROR = new CodeMsg(500215, "密码错误");
+    public static CodeMsg PASSWORD_ERROR = new CodeMsg(500215, "用户名或密码错误");
+    public static CodeMsg MOBILE_ERROR = new CodeMsg(500222, "手机号格式错误");
     public static CodeMsg USER_EMPTY = new CodeMsg(500216, "用户不能为空");
     public static CodeMsg USER_NOT_LOGIN = new CodeMsg(500217, "用户未登录");
+    public static CodeMsg USERNAME_EXIST = new CodeMsg(500218, "用户名已存在");
+    public static CodeMsg USER_INFO_ERROR = new CodeMsg(500226,"用户信息与登录的不一致");
 
     public static CodeMsg USER_ACCOUNT_EXPIRED = new CodeMsg(500219, "账号过期");
     public static CodeMsg USER_CREDENTIALS_EXPIRED = new CodeMsg(500220, "密码过期");

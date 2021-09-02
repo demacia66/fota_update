@@ -3,6 +3,7 @@ package com.simit.fota.filter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.simit.fota.entity.SecurityUser;
 import com.simit.fota.entity.User;
+import com.simit.fota.exception.GlobalException;
 import com.simit.fota.redis.RedisService;
 import com.simit.fota.redis.UserKey;
 import com.simit.fota.result.CodeMsg;
@@ -10,6 +11,7 @@ import com.simit.fota.result.Result;
 import com.simit.fota.util.JWTTokenUtil;
 import com.simit.fota.util.ResponseUtil;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -54,17 +56,25 @@ public class TokenLoginFilter extends UsernamePasswordAuthenticationFilter {
         //获取表单提交数据
         try {
             String username = request.getParameter("username");
+            if (StringUtils.isEmpty(username)){
+                throw new GlobalException(CodeMsg.USER_EMPTY);
+            }
             String password = request.getParameter("password");
+            if (StringUtils.isEmpty(password)){
+                throw new GlobalException(CodeMsg.PASSWORD_EMPTY);
+            }
             User user = new User();
             user.setPassword(password);
             user.setUsername(username);
 //            User user = new ObjectMapper().readValue(request.getInputStream(), User.class);
             return authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(),user.getPassword(),
                     new ArrayList<>()));
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException();
+        } catch (GlobalException e) {
+            ResponseUtil.error(response,Result.error(e.getCodeMsg(),"authent"));
+        }catch (Exception e){
+            ResponseUtil.error(response,Result.error(CodeMsg.PASSWORD_ERROR,"authent"));
         }
+        return null;
     }
 
 

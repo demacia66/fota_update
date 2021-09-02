@@ -1,7 +1,10 @@
 package com.simit.fota.service;
 
+import com.simit.fota.dao.UserMapper;
 import com.simit.fota.entity.SecurityUser;
 import com.simit.fota.entity.User;
+import com.simit.fota.exception.GlobalException;
+import com.simit.fota.result.CodeMsg;
 import com.simit.fota.security.DefaultPasswordEncoder;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +25,9 @@ public class UserDetailServiceImpl implements UserDetailsService {
     @Autowired
     private DefaultPasswordEncoder passwordEncoder;
 
+    @Autowired
+    private UserMapper userMapper;
+
     //进行登录
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         //判断
@@ -30,7 +36,12 @@ public class UserDetailServiceImpl implements UserDetailsService {
 //            throw new UsernameNotFoundException("用户名不存在！");
 //        }
 //        List<GrantedAuthority> auths = AuthorityUtils.commaSeparatedStringToAuthorityList("admins,ROLE_sale");
-        User curUser = new User("mary",passwordEncoder.encode("123"));
+
+        User curUser = userMapper.findUserByUsername(username);
+
+        if (curUser == null){
+            throw new GlobalException(CodeMsg.USER_ERROR);
+        }
 
         //根据用户名查询数据
 //        User user = userService.selectByUsername(username);
@@ -45,7 +56,6 @@ public class UserDetailServiceImpl implements UserDetailsService {
         securityUser.setCurrentUserInfo(curUser);
         securityUser.setPermissionValueList(permissionValueList);
         return securityUser;
-
 
     }
 }
