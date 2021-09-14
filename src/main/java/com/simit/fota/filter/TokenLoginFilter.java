@@ -18,6 +18,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
@@ -55,24 +56,33 @@ public class TokenLoginFilter extends UsernamePasswordAuthenticationFilter {
             throws AuthenticationException {
         //获取表单提交数据
         try {
-            String username = request.getParameter("username");
+
+            String username1 = request.getParameter("username");
+            String password1 = request.getParameter("password");
+            if (username1 != null && password1 != null){
+                return authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username1,password1,
+                        new ArrayList<>()));
+            }
+
+            User user = new ObjectMapper().readValue(request.getInputStream(), User.class);
+            String username = user.getUsername();
             if (StringUtils.isEmpty(username)){
                 throw new GlobalException(CodeMsg.USER_EMPTY);
             }
-            String password = request.getParameter("password");
+            String password = user.getPassword();
             if (StringUtils.isEmpty(password)){
                 throw new GlobalException(CodeMsg.PASSWORD_EMPTY);
             }
-            User user = new User();
-            user.setPassword(password);
-            user.setUsername(username);
+
 //            User user = new ObjectMapper().readValue(request.getInputStream(), User.class);
             return authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(),user.getPassword(),
                     new ArrayList<>()));
         } catch (GlobalException e) {
             ResponseUtil.error(response,Result.error(e.getCodeMsg(),"authent"));
-        }catch (Exception e){
-            ResponseUtil.error(response,Result.error(CodeMsg.PASSWORD_ERROR,"authent"));
+        }catch (UsernameNotFoundException e){
+            ResponseUtil.error(response,Result.error(CodeMsg.USERNAME_PASSWORD_ERROR,"authent"));
+        }catch (IOException e){
+            e.printStackTrace();
         }
         return null;
     }
@@ -100,7 +110,7 @@ public class TokenLoginFilter extends UsernamePasswordAuthenticationFilter {
     //3 认证失败调用的方法
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed)
             throws IOException, ServletException {
-        ResponseUtil.out(response, Result.error(CodeMsg.NO_AUTHENTICATION));
+        ResponseUtil.out(response, Result.error(CodeMsg.USERNAME_PASSWORD_ERROR,"auth"));
     }
 
 

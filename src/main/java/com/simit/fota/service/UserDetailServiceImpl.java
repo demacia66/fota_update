@@ -6,6 +6,7 @@ import com.simit.fota.entity.User;
 import com.simit.fota.exception.GlobalException;
 import com.simit.fota.result.CodeMsg;
 import com.simit.fota.security.DefaultPasswordEncoder;
+import org.junit.Test;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
@@ -42,6 +43,10 @@ public class UserDetailServiceImpl implements UserDetailsService {
         if (curUser == null){
             throw new GlobalException(CodeMsg.USER_ERROR);
         }
+        //用户没有激活
+        if ("0".equals(curUser.getEnable())){
+            throw new GlobalException(CodeMsg.USER_NO_ACTIVATION);
+        }
 
         //根据用户名查询数据
 //        User user = userService.selectByUsername(username);
@@ -57,5 +62,11 @@ public class UserDetailServiceImpl implements UserDetailsService {
         securityUser.setPermissionValueList(permissionValueList);
         return securityUser;
 
+    }
+
+    @Test
+    public void test(){
+        DefaultPasswordEncoder defaultPasswordEncoder = new DefaultPasswordEncoder();
+        System.out.println(defaultPasswordEncoder.encode("111111"));
     }
 }

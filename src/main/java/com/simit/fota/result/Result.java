@@ -10,6 +10,8 @@ import lombok.Data;
  */
 @Data
 public class Result<T> {
+
+    private String state;
     private int code;
     private String message;
     private String action;
@@ -19,21 +21,28 @@ public class Result<T> {
     }
 
     public Result(T data){
-        this.code = 0;
+        this.code = 200;
         this.message = "success";
         this.data = data;
+        this.state = "ok";
     }
 
     public Result(T data,String action){
-        this.code = 0;
+        this.code = 200;
         this.message = "success";
         this.data = data;
         this.action = action;
+        this.state = "ok";
     }
 
     private Result(CodeMsg codeMsg) {
         if (codeMsg == null){
             return;
+        }
+        if (codeMsg.isError()){
+            this.state = "error";
+        }else {
+            this.state = "ok";
         }
         this.code = codeMsg.getCode();
         this.message = codeMsg.getMsg();
@@ -42,6 +51,11 @@ public class Result<T> {
     private Result(CodeMsg codeMsg,String action) {
         if (codeMsg == null){
             return;
+        }
+        if (codeMsg.isError()){
+            this.state = "error";
+        }else {
+            this.state = "ok";
         }
         this.code = codeMsg.getCode();
         this.message = codeMsg.getMsg();
@@ -56,6 +70,10 @@ public class Result<T> {
      */
     public static <T> Result<T> success(T data,String action){
         return new Result<T>(data,action);
+    }
+
+    public static <T> Result<T> success(CodeMsg codeMsg,String action){
+        return new Result<T>(codeMsg,action);
     }
 
 

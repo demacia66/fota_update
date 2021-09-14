@@ -1,5 +1,6 @@
 package com.simit.fota.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,17 +10,20 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class User {
 
-    private Integer id;
+    private Integer userId;
 
     private String username;
 
     private String password;
 
-    private String phoneNum;
+    @JsonProperty("Phone_Number")
+    private String PhoneNumber;
+
+    private String enable;
 
     public User(String username, String password, String phoneNum) {
         this.username = username;
         this.password = password;
-        this.phoneNum = phoneNum;
+        this.PhoneNumber = phoneNum;
     }
 }

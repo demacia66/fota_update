@@ -1,6 +1,7 @@
 package com.simit.fota.security;
 
 import com.simit.fota.util.MD5;
+import org.junit.Test;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -24,4 +25,6 @@ public class DefaultPasswordEncoder implements PasswordEncoder {
     public boolean matches(CharSequence charSequence, String encodedPassword) {
         return encodedPassword.equals(MD5.encrypt(charSequence.toString()));
     }
+
+
 }

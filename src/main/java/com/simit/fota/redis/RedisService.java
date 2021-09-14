@@ -116,7 +116,7 @@ public class RedisService {
         String[] strs = a.split(",");
 
         for (String cur:strs){
-            res.add(cur);
+            res.add(cur.replace("\"",""));
         }
 
         return res;

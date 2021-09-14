@@ -37,6 +37,7 @@ public class TokenWebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.exceptionHandling()
                 .authenticationEntryPoint(new UnauthEntryPoint())//没有权限访问
                 .and().csrf().disable()
+                .cors().and()
                 .authorizeRequests()
                 .anyRequest().authenticated()
                 .and().logout().logoutUrl("/fota/api/user/logout")//退出路径
@@ -78,5 +79,13 @@ public class TokenWebSecurityConfig extends WebSecurityConfigurerAdapter {
     public void configure(WebSecurity web) throws Exception {
         web.ignoring().antMatchers("/api/**");
         web.ignoring().antMatchers("/fota/api/user/signup");
+        web.ignoring().antMatchers("/swagger*/**");
+        web.ignoring().antMatchers("/swagger-ui.html");
+        web.ignoring().antMatchers("/swagger-resources/**");
+        web.ignoring().antMatchers("/webjars/**");
+        web.ignoring().antMatchers("/webjars/**");
+        web.ignoring().antMatchers("/v2/**");
+        web.ignoring().antMatchers("/api/**");
+
     }
 }

@@ -2,6 +2,7 @@ package com.simit.fota.filter;
 
 import com.simit.fota.redis.RedisService;
 import com.simit.fota.redis.UserKey;
+import com.simit.fota.result.CodeMsg;
 import com.simit.fota.result.Result;
 import com.simit.fota.util.JWTTokenUtil;
 import com.simit.fota.util.ResponseUtil;
@@ -34,6 +35,6 @@ public class TokenLogoutHandler implements LogoutHandler {
             String username = JWTTokenUtil.getUserInfoFromToken(token);
             redisService.remove(UserKey.getByName,username);
         }
-        ResponseUtil.out(response, Result.success(null,"/fota/api/user/logout"));
+        ResponseUtil.out(response, Result.success(CodeMsg.LOGOUT_SUCCESS,"/fota/api/user/logout"));
     }
 }

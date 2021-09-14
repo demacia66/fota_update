@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.simit.fota.dao.DeviceMapper">
+    <update id="updateDevice" parameterType="com.simit.fota.entity.Device">
+        update IMEI_Attribute
+        <set>
+            <if test="ManufacturerBrandID!=null">
+                Manufacturer_Brand_ID = #{ManufacturerBrandID},
+            </if>
+            <if test="NetworkTypeID!=null">
+                Network_Type_ID = #{NetworkTypeID},
+            </if>
+            <if test="SWRlse!=null">
+                SW_rlse = #{SWRlse},
+            </if>
+            delTag = '0'
+        </set>
+        where IMEI = #{IMEI}
+    </update>
+
+    <select id="findDelete" resultType="java.lang.String">
+        select distinct IMEI from IMEI_Attribute
+        where IMEI in (
+        <foreach collection="imeis" item="item" index="index" separator=",">
+            ${item}
+        </foreach>
+        )
+        and delTag != '1'
+    </select>
+
+    <update id="deleteDevices">
+        update IMEI_Attribute
+        set delTag = '1'
+        where IMEI in(
+        <foreach collection="imeis" item="item" index="index" separator=",">
+            ${item}
+        </foreach>
+        )
+    </update>
+    
+    <update id="deleteDevicesInKVL">
+        update IMEI_KV_latest
+        set delTag = '1'
+        where IMEI in(
+        <foreach collection="imeis" item="item" index="index" separator=",">
+            ${item}
+        </foreach>
+        )
+    </update>
+
+    <update id="deleteDevicesInKV">
+        update IMEI_KV
+        set delTag = '1'
+        where IMEI in(
+        <foreach collection="imeis" item="item" index="index" separator=",">
+            ${item}
+        </foreach>
+        )
+    </update>
+
+</mapper>
