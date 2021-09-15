@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class FotaProject {
     //项目id
+    @JsonProperty("Fota_Project_ID")
     private Integer ID;
     //项目名
     @JsonProperty("Fota_Project_Name")

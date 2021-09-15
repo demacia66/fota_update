@@ -72,7 +72,8 @@ public class CodeMsg {
     public static CodeMsg SW_RLSE_NOT_EXIST = new CodeMsg(500701,"SWrlse not exist");
     public static CodeMsg INTIAL_VERSION_EMPTY = new CodeMsg(500702,"initial version empty");
     public static CodeMsg VERSION_DUPLICATE = new CodeMsg(500703,"version duplicate");
-
+    public static CodeMsg VERSIONID_EMPTY = new CodeMsg(500704,"version id empty");
+    public static CodeMsg VERSION_NOT_EXIST= new CodeMsg(500705,"version not exist");
 
 
     public static CodeMsg TOKEN_INVALID = new CodeMsg(403,"token invalid");

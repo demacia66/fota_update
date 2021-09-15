@@ -9,6 +9,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProjectVo {
+
+    @JsonProperty("Fota_Project_ID")
+    private Integer FotaProjectID;
+
      //初始版本
     @JsonProperty("initial_version")
     private String initialVersion;

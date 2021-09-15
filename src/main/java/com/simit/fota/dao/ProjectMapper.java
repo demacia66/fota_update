@@ -1,6 +1,7 @@
 package com.simit.fota.dao;
 
 import com.simit.fota.entity.FotaProject;
+import com.simit.fota.entity.ProjectVo;
 import com.simit.fota.result.Page;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
@@ -30,5 +31,9 @@ public interface ProjectMapper {
     @Select("select count(*) from Fota_Project where delTag != '1'")
     int findProjectCount();
 
-    List<FotaProject> findAllProjects(Page page);
+    @Select("select * from Fota_Project where  delTag != 1 order by Create_ts DESC limit #{page.startRow},#{page.pageSize}")
+    List<FotaProject> findAllProjects(@Param("page") Page page);
+
+    @Update("update Fota_Project set Fota_Project_Name = #{FotaProjectName} where ID = #{FotaProjectID} and delTag != '1' ")
+    void updateProName(ProjectVo project);
 }

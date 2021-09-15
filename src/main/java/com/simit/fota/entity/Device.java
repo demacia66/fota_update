@@ -57,7 +57,7 @@ public class Device {
 
     private String RSSI;
 
-    @JsonIgnore
+    @JsonProperty("lastTs")
     private Long lastTs;
 
     private String delTag = "0";
