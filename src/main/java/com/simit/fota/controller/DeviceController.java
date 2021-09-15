@@ -58,7 +58,7 @@ public class DeviceController {
     }
 
     @GetMapping("/list")
-    public Result<Page<Device>> deviceList(@RequestParam(required = false) Page page){
+    public Result<Page<Device>> deviceList(Page page){
         Page<Device> result = deviceService.getDeviceList(page);
         return Result.success(result,"list");
     }
@@ -88,7 +88,7 @@ public class DeviceController {
     }
 
     @GetMapping("/report/{IMEI}")
-    public Result<Page<IMEIKV>> getReports(@PathVariable("IMEI") String IMEI,@RequestParam(required = false) Page page){
+    public Result<Page<IMEIKV>> getReports(@PathVariable("IMEI") String IMEI, Page page){
         Device deviceByIMEI = deviceService.findDeviceByIMEI(IMEI);
         if (deviceByIMEI == null || "1".equals(deviceByIMEI.getDelTag())){
             throw new GlobalException(CodeMsg.DEVICE_NOT_EXIST);

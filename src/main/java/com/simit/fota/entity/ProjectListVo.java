@@ -5,19 +5,27 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * @author ycy
+ * @email 615336738@qq.com
+ * @create 2021-09-15 9:20 上午
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProjectVo {
-     //初始版本
-    @JsonProperty("initial_version")
-    private String initialVersion;
+//用于显示项目列表
+public class ProjectListVo {
+
+    @JsonProperty("Fota_Project_ID")
+    private Integer ID;
 
     //项目名
     @JsonProperty("Fota_Project_Name")
     private String FotaProjectName;
 
-    //项目描述
-    @JsonProperty("Description")
-    private String Description;
+    private String curVersion;
+
+    @JsonProperty("Create_ts")
+    private String CreateTs;
+
 }

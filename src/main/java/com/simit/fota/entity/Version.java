@@ -1,5 +1,6 @@
 package com.simit.fota.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,7 +20,7 @@ public class Version {
     @JsonProperty("create_ts")
     private String ts;
 
-    @JsonProperty("ts")
+    @JsonIgnore
     private Long CreateTs;
 
     private String Description;

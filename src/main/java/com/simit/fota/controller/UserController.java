@@ -113,7 +113,7 @@ public class UserController {
     //获取用户列表
     @PreAuthorize("hasAuthority('admin')")
     @GetMapping("/list")
-    public Result<Page<User>> getUsers( @RequestParam(required = false) Page page,HttpServletRequest request){
+    public Result<Page<User>> getUsers(  Page page,HttpServletRequest request){
 
         System.out.println(page);
         Page<User> result = userService.getUserList(page);

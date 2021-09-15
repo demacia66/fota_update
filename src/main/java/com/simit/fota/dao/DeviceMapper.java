@@ -16,8 +16,8 @@ public interface DeviceMapper {
             "values(#{IMEI},#{SN},#{Project},#{ManufacturerBrandID},#{NetworkTypeID},#{SWRlse},#{CreateTs},#{Location},#{delTag})")
     int insertDevice(Device device);
 
-    @Select("select ia.ID ID,IMEI,SN,Project,Manufacturer_Brand,Name Network_Type,SW_rlse,Create_ts from IMEI_Attribute ia,Network_Type nt,Manufacturer_Brand mb where ia.Manufacturer_Brand_ID = mb.ID and nt.ID = Network_Type_ID and IMEI = #{imei} and delTag != '1' ")
-    Device findByIMEI(@Param("imei") String imei);
+    @Select("select ia.ID ID,IMEI,SN,Project,Manufacturer_Brand,Name Network_Type,SW_rlse,Create_ts from IMEI_Attribute ia,Network_Type nt,Manufacturer_Brand mb where ia.Manufacturer_Brand_ID = mb.ID and nt.ID = Network_Type_ID and IMEI = #{IMEI} and delTag != '1' ")
+    Device findByIMEI(@Param("IMEI") String IMEI);
 
     @Select("select *  from IMEI_Attribute where delTag != 1")
     List<Device> getDevices();
@@ -47,6 +47,6 @@ public interface DeviceMapper {
     @Select("select count(*) from IMEI_KV where IMEI = #{IMEI}")
     int findReportCount(@Param("IMEI") String IMEI);
 
-    @Select("select IMEI,RSSI,ts,DeviceID,ICCID,SW_rlse from IMEI_KV where IMEI = #{IMEI} limit #{startRow},#{pageSize}")
-    List<IMEIKV> findAllReports(String imei, Page page);
+    @Select("select IMEI,RSSI,ts,DeviceID,ICCID,SW_rlse from IMEI_KV where IMEI = #{imei} order by `ts` DESC limit #{page.startRow},#{page.pageSize} ")
+    List<IMEIKV> findAllReports(@Param("imei") String imei,@Param("page") Page page);
 }

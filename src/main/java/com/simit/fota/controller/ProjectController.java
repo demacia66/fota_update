@@ -1,9 +1,11 @@
 package com.simit.fota.controller;
 
 import com.simit.fota.entity.FotaProject;
+import com.simit.fota.entity.ProjectListVo;
 import com.simit.fota.entity.ProjectVo;
 import com.simit.fota.exception.GlobalException;
 import com.simit.fota.result.CodeMsg;
+import com.simit.fota.result.Page;
 import com.simit.fota.result.Result;
 import com.simit.fota.service.ProjectService;
 import com.simit.fota.util.JWTTokenUtil;
@@ -13,6 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 @RestController
 @RequestMapping("/fota/api/project")
@@ -38,6 +41,19 @@ public class ProjectController {
         }
         projectService.deleteProject(projectId);
         return Result.success(true, "device");
+    }
+
+    @GetMapping("/projectName")
+    public Result<List<String>> projectName(){
+        List<String> res = projectService.findAllProject();
+        return Result.success(res,"project_name");
+    }
+
+
+    @GetMapping("/list")
+    public Result<Page<ProjectListVo>> projectList(Page page){
+        Page<ProjectListVo> res = projectService.findProjectsByPage(page);
+        return Result.success(res,"list");
     }
 
 }

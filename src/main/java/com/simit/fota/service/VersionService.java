@@ -1,6 +1,7 @@
 package com.simit.fota.service;
 
 import com.simit.fota.dao.VersionMapper;
+import com.simit.fota.entity.FotaProject;
 import com.simit.fota.entity.Version;
 import com.simit.fota.exception.GlobalException;
 import com.simit.fota.result.CodeMsg;
@@ -11,6 +12,9 @@ import org.springframework.stereotype.Service;
 public class VersionService {
     @Autowired
     private VersionMapper versionMapper;
+
+    @Autowired
+    private ProjectService projectService;
 
     /**
      * 新建版本
@@ -37,4 +41,15 @@ public class VersionService {
         version.setCreateTs(System.currentTimeMillis());
         versionMapper.insertVersion(version);
     }
+
+    public String curVersion(Integer projectId){
+
+        FotaProject project = projectService.findProjectById(projectId);
+        if (project == null){
+            throw new GlobalException(CodeMsg.PROJECT_NOT_EXIST);
+        }
+        Version version = versionMapper.findLatestVersion(projectId);
+        return version.getVersionName();
+    }
+
 }

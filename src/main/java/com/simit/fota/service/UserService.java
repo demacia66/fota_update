@@ -93,7 +93,7 @@ public class UserService {
         if (page.getPageSize() == null){
             page.setPageSize(10);
         }
-        page.setTotalPage(totalCount / page.getPageSize() + 1);
+        page.setTotalPage(totalCount / page.getPageSize());
         page.setTotalCount(totalCount);
 
         if (page.getCurrentPage() <= 0){

@@ -1,5 +1,6 @@
 package com.simit.fota.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.simit.fota.annotation.excelRescoure;
 import lombok.AllArgsConstructor;
@@ -44,7 +45,11 @@ public class Device {
     @excelRescoure("SW_rlse")
     private String SWRlse;
 
+    @JsonIgnore
     private Long CreateTs;
+
+    @JsonProperty("create_ts")
+    private String create_ts;
 
     @JsonProperty("location")
     @excelRescoure("location")
@@ -52,6 +57,7 @@ public class Device {
 
     private String RSSI;
 
+    @JsonIgnore
     private Long lastTs;
 
     private String delTag = "0";

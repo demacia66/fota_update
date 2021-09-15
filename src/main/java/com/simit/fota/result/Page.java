@@ -1,5 +1,6 @@
 package com.simit.fota.result;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,6 +13,7 @@ import java.util.List;
 public class Page<T> {
     //总条数
     private int totalCount;
+    @JsonIgnore
     private int totalPage;
 
     //当前页数
@@ -21,9 +23,18 @@ public class Page<T> {
     private Integer pageSize = 10;
 
     //起始行
+    @JsonIgnore
     private int startRow;
 
     private List<T> dataList;
+
+    public Page(int totalCount){
+        this.pageSize = 10;
+        this.currentPage = 1;
+        this.totalCount = totalCount;
+        this.totalPage = totalCount / this.pageSize;
+        this.startRow = 0;
+    }
 
     public Page(List<T> data,int totalCount){
         this.dataList = data;
@@ -37,6 +48,31 @@ public class Page<T> {
         this.totalCount = page.getTotalCount();
         this.pageSize = page.getPageSize();
         this.startRow = (this.currentPage - 1) * this.pageSize;
+    }
+
+
+    public Page(int totalCount,Integer currentPage,Integer pageSize){
+        if (totalCount == 0){
+            this.currentPage = 0;
+            this.pageSize = 0;
+            this.totalCount = 0;
+            this.totalPage = 0;
+            return;
+        }
+        if (pageSize == null){
+            pageSize = 10;
+        }
+        if (currentPage == null || currentPage.compareTo(0) < 0){
+            currentPage = 1;
+        }
+        this.totalCount = totalCount;
+        this.totalPage = totalCount / pageSize;
+        this.pageSize = pageSize;
+        this.currentPage = currentPage;
+        if (this.pageSize * (this.currentPage - 1) > this.totalCount){
+            this.currentPage = totalPage;
+        }
+        this.startRow = ((this.currentPage - 1) * this.pageSize);
     }
 
     public static <T> Page success(List<T> data,int totalCount){

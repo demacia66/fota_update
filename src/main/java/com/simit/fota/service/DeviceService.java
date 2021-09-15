@@ -116,6 +116,9 @@ public class DeviceService {
         if (device == null) {
             throw new GlobalException(CodeMsg.DEVICE_NOT_EXIST);
         }
+        if (device.getCreateTs() != null){
+            device.setCreate_ts(DateFormatUtil.formatDate(device.getCreateTs()));
+        }
         return device;
     }
 
@@ -124,7 +127,7 @@ public class DeviceService {
         if (page == null) {
             page = new Page();
         }
-        page.setTotalPage(totalCount / page.getPageSize() + 1);
+        page.setTotalPage(totalCount / page.getPageSize() );
         page.setTotalCount(totalCount);
 
         if (page.getCurrentPage() == null) {
@@ -246,7 +249,7 @@ public class DeviceService {
             page = new Page();
         }
 
-        page.setTotalPage(totalCount / page.getPageSize() + 1);
+        page.setTotalPage(totalCount / page.getPageSize() );
         page.setTotalCount(totalCount);
 
         if (page.getCurrentPage() == null && totalCount != 0) {
