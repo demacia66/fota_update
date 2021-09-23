@@ -29,7 +29,7 @@ public interface DeviceMapper {
     @Select("select count(*) from IMEI_Attribute where delTag != '1' ")
     int findDeviceCount();
 
-    @Select("select ID,ia.IMEI,ia.SW_rlse,DeviceID,Project,ts last_ts,RSSI from IMEI_KV_latest ikl Right join IMEI_Attribute ia on ikl.IMEI = ia.IMEI and ia.delTag != '1' order by last_ts desc limit #{startRow},#{pageSize}")
+    @Select("select ID,ia.IMEI,ia.SW_rlse,DeviceID,Project,ts last_ts,RSSI from IMEI_KV_latest ikl Right join IMEI_Attribute ia on ikl.IMEI = ia.IMEI where ia.delTag != '1' order by last_ts desc limit #{startRow},#{pageSize}")
     List<Device> findAllDevices(Page page);
 
 

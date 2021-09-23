@@ -24,7 +24,7 @@ public class ProjectService {
     private VersionService versionService;
 
     //新建项目
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void createProject(ProjectVo projectVo,String token){
         FotaProject project = new FotaProject();
 
@@ -100,6 +100,10 @@ public class ProjectService {
         }
         page.setDataList(res);
         return page;
+    }
+
+    public FotaProject findProjectByName(String name){
+        return projectMapper.findProjectByName(name);
     }
 
     public void updateProject(ProjectVo project) {

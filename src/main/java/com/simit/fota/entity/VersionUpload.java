@@ -3,6 +3,7 @@ package com.simit.fota.entity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -12,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class VersionUpload {
 
     private String VersionName;
+
 
     private Integer FotaProjectID;
 

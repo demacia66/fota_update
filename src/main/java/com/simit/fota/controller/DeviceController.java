@@ -2,12 +2,15 @@ package com.simit.fota.controller;
 
 import com.simit.fota.entity.Device;
 import com.simit.fota.entity.IMEIKV;
+import com.simit.fota.entity.NetworkType;
 import com.simit.fota.entity.User;
 import com.simit.fota.exception.GlobalException;
 import com.simit.fota.result.CodeMsg;
 import com.simit.fota.result.Page;
 import com.simit.fota.result.Result;
+import com.simit.fota.service.BrandService;
 import com.simit.fota.service.DeviceService;
+import com.simit.fota.service.NetworkTypeService;
 import com.simit.fota.util.ExcelRead;
 import com.sun.istack.internal.Nullable;
 
@@ -29,6 +32,7 @@ import javax.xml.stream.Location;
 import java.beans.IntrospectionException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
@@ -41,6 +45,12 @@ public class DeviceController {
 
     @Autowired
     private DeviceService deviceService;
+
+    @Autowired
+    private BrandService brandService;
+
+    @Autowired
+    private NetworkTypeService typeService;
 
     @PostMapping("/add")
     @ApiOperation("添加设备")
@@ -77,6 +87,16 @@ public class DeviceController {
         return Result.success(true,"device");
     }
 
+    @DeleteMapping("/del/{IMEI}")
+    public Result<Boolean> deleteDevice(@PathVariable("IMEI") String imei){
+        if (!(imei == null || imei.isEmpty())){
+            List<String> imeis = new ArrayList<>();
+            imeis.add(imei);
+            deviceService.deleteDevices(imeis);
+        }
+        return Result.success(true,"device");
+    }
+
 
     @RequestMapping(value = "/import",method = RequestMethod.POST)
     public Result<Boolean> importDevices( MultipartFile file) throws IllegalAccessException, IntrospectionException, IOException, InstantiationException, InvocationTargetException, NoSuchFieldException, ServletException {
@@ -94,6 +114,17 @@ public class DeviceController {
             throw new GlobalException(CodeMsg.DEVICE_NOT_EXIST);
         }
         return Result.success(deviceService.getDeviceReport(IMEI,page),"report");
+    }
+
+    @GetMapping("/brands")
+    public Result<List<String>> getBrands(){
+        List<String> brands = brandService.findAllManufacturerBrands();
+        return Result.success(brands,"brands");
+    }
+    @GetMapping("/types")
+    public Result<List<String>> getTypes(){
+        List<String> types = typeService.findTypes();
+        return Result.success(types,"types");
     }
 
 

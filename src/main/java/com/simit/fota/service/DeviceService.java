@@ -45,6 +45,9 @@ public class DeviceService {
     @Autowired
     private ProjectMapper projectMapper;
 
+    @Autowired
+    private VersionService versionService;
+
     public void createNewDevice(Device device) {
         if (StringUtils.isEmpty(device.getIMEI())) {
             //IMEI号为空
@@ -69,6 +72,11 @@ public class DeviceService {
         FotaProject project = projectMapper.findProjectByName(device.getProject());
         if (project == null) {
             throw new GlobalException(CodeMsg.PROJECT_NOT_EXIST);
+        }
+
+        Version versionByPidVname = versionService.findVersionByPidVname(project.getID(), device.getSWRlse());
+        if (versionByPidVname == null){
+            throw new GlobalException(CodeMsg.SW_RLSE_NOT_EXIST);
         }
 
         //检查网络类型
@@ -164,8 +172,15 @@ public class DeviceService {
             throw new GlobalException(CodeMsg.PARAM_ERROR);
         }
         Device device1 = deviceMapper.findByIMEI(IMEI);
-        if (device == null) {
+        if (device1 == null) {
             throw new GlobalException(CodeMsg.DEVICE_NOT_EXIST);
+        }
+        if (device.getSWRlse() != null){
+            FotaProject name = projectMapper.findProjectByName(device1.getProject());
+            Version version = versionService.findVersionByPidVname(name.getID(), device.getSWRlse());
+            if (version == null){
+                throw new GlobalException(CodeMsg.SW_RLSE_NOT_EXIST);
+            }
         }
         if (device.getNetworkType() == null && device.getManufacturerBrand() == null && device.getSWRlse() == null) {
             return;

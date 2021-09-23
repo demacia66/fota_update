@@ -17,6 +17,7 @@ public class CodeMsg {
     public static CodeMsg Sign_SUCCESS = new CodeMsg(201, "sign success",false);
     public static CodeMsg DEVICE_ADD_SUCCESS = new CodeMsg(201, "device add success",false);
     public static CodeMsg PROJECT_ADD_SUCCESS = new CodeMsg(201, "project create success",false);
+    public static CodeMsg VERSION_ADD_SUCCESS = new CodeMsg(201, "version create success",false);
     public static CodeMsg SERVER_ERROR = new CodeMsg(500100, "服务端异常");
     public static CodeMsg BIND_ERROR = new CodeMsg(500101, "参数校验异常：%s");
     public static CodeMsg NO_AUTHENTICATION = new CodeMsg(500102, "权限认证异常：%s");
@@ -74,10 +75,16 @@ public class CodeMsg {
     public static CodeMsg VERSION_DUPLICATE = new CodeMsg(500703,"version duplicate");
     public static CodeMsg VERSIONID_EMPTY = new CodeMsg(500704,"version id empty");
     public static CodeMsg VERSION_NOT_EXIST= new CodeMsg(500705,"version not exist");
+    public static CodeMsg VERSION_NAME_EMPTY= new CodeMsg(500706,"version name empty");
+    public static CodeMsg PREVERSION_EMPTY= new CodeMsg(500707,"preversion empty");
+    public static CodeMsg PREVERSION_NOT_EXIST= new CodeMsg(500708,"preversion not exist");
+
 
 
     public static CodeMsg TOKEN_INVALID = new CodeMsg(403,"token invalid");
     public static CodeMsg EXCEL_INVALID = new CodeMsg(500800,"上传文件不符合要求哦");
+    public static CodeMsg FILE_UPLOAD_ERROR = new CodeMsg(500800,"文件上传出错");
+    public static CodeMsg FILE_NOT_EXIST = new CodeMsg(500801,"文件不存在");
 
 
     public CodeMsg(int code, String msg) {

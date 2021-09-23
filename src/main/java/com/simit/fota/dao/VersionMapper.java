@@ -1,6 +1,8 @@
 package com.simit.fota.dao;
 
 import com.simit.fota.entity.Version;
+import com.simit.fota.entity.VersionFiles;
+import com.simit.fota.entity.VersionRelation;
 import com.simit.fota.entity.VersionVo;
 import com.simit.fota.result.Page;
 import org.apache.ibatis.annotations.*;
@@ -34,6 +36,7 @@ public interface VersionMapper {
      * @return
      */
     @Insert("insert into Version_Library(Fota_Project_ID,Version_Name,Create_ts,Description,delTag) values(#{FotaProjectID},#{VersionName},#{CreateTs},#{Description},#{delTag})")
+    @Options(useGeneratedKeys = true,keyColumn = "ID",keyProperty = "ID")
     int insertVersion(Version version);
 
     /**
@@ -67,6 +70,15 @@ public interface VersionMapper {
     Version findVersionByVId(Version version);
 
     /**
+     * 根据版本名称找到版本
+     * @param version
+     * @return
+     */
+    @Select("select * from Version_Library where Version_Name = #{VersionName} and Fota_Project_ID = #{FotaProjectID} and delTag != '1' ")
+    Version findVersionByVName(Version version);
+
+
+    /**
      *项目的版本数量
      * @param fotaProjectId
      * @return
@@ -82,9 +94,27 @@ public interface VersionMapper {
     @Select("select * from Version_Library where Fota_Project_ID = #{fotaProjectId} and delTag != '1' order by ID DESC limit #{page.startRow},#{page.pageSize}")
     List<VersionVo> findVersionsByPId(@Param("fotaProjectId") Integer fotaProjectId,@Param("page") Page page);
 
+    @Select("select Version_Name from Version_Library where Fota_Project_ID = #{fotaProjectId} and delTag != '1' order by ID ")
+    List<String> findVersionNamesByPId(@Param("fotaProjectId") Integer fotaProjectId);
+
     @Select("select * from Version_Library where Fota_Project_ID = #{fotaProjectID} order by ID limit 1")
     Version findInitialVersion(@Param("fotaProjectID") Integer fotaProjectID);
 
     @Update("update Version_Library set Version_Name = #{VersionName},Description = #{Description} where ID = #{ID} and delTag != '1' ")
     void updateVersionById(Version version);
+
+    @Insert("insert into Version_Files(File_Type,Version_ID,Fota_Project_ID,FileName,FileURL,FileMD5,Upload_ts) values(#{FileType},#{VersionID},#{FotaProjectID}," +
+            "#{FileName},#{FileURL},#{FileMD5},#{UploadTs})")
+    void insertVersionFile(VersionFiles versionFiles);
+
+    /**
+     * 插入项目中的第一个数据
+     * @param relation
+     * @return
+     */
+    @Insert("insert into Version_Relation(Fota_Project_ID,Version_ID,Prev_Version_ID,Next_Version_ID,delTag) values(#{FotaProjectID},#{VersionID},#{PrevVersionID},#{NextVersionID},#{delTag})")
+    int insertInitialVersionRelation(VersionRelation relation);
+
+    @Update("update Version_Relation set Next_Version_ID = #{VersionID} where Version_ID = #{PrevVersionID} and Fota_Project_ID = #{FotaProjectID}")
+    int updateRelation(VersionRelation relation);
 }
