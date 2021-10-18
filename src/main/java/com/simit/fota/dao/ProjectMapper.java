@@ -31,7 +31,7 @@ public interface ProjectMapper {
     @Select("select count(*) from Fota_Project where delTag != '1'")
     int findProjectCount();
 
-    @Select("select * from Fota_Project where  delTag != 1 order by Create_ts DESC limit #{page.startRow},#{page.pageSize}")
+    @Select("select * from Fota_Project where  delTag != 1 order by ${page.orderField} ${page.orderType} limit #{page.startRow},#{page.pageSize}")
     List<FotaProject> findAllProjects(@Param("page") Page page);
 
     @Update("update Fota_Project set Fota_Project_Name = #{FotaProjectName} where ID = #{FotaProjectID} and delTag != '1' ")

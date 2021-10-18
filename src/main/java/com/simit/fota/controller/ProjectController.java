@@ -1,6 +1,7 @@
 package com.simit.fota.controller;
 
 import com.simit.fota.entity.FotaProject;
+import com.simit.fota.entity.ProjectAttribute;
 import com.simit.fota.entity.ProjectListVo;
 import com.simit.fota.entity.ProjectVo;
 import com.simit.fota.exception.GlobalException;
@@ -33,7 +34,7 @@ public class ProjectController {
      */
     @PostMapping("/add")
     public Result<CodeMsg> createProject(@RequestBody ProjectVo projectVo, HttpServletRequest request) {
-        String token = request.getHeader("token");
+        String token = (String) request.getAttribute("token");
         projectService.createProject(projectVo,token);
         return Result.success(CodeMsg.PROJECT_ADD_SUCCESS, "version");
     }
@@ -50,7 +51,7 @@ public class ProjectController {
             throw new GlobalException(CodeMsg.PROJECT_ID_EMPTY);
         }
         projectService.deleteProject(projectId);
-        return Result.success(true, "device");
+        return Result.success(true, "delete");
     }
 
     /**
@@ -90,4 +91,12 @@ public class ProjectController {
         return Result.success(true,"edit");
     }
 
+    @GetMapping("/edit/{Fota_Project_ID}")
+    public Result<ProjectAttribute> projectAttribute(@PathVariable("Fota_Project_ID") Integer FotaProjectID){
+        if (FotaProjectID == null){
+            throw new GlobalException(CodeMsg.PROJECT_ID_EMPTY);
+        }
+        ProjectAttribute attribute = projectService.findProjectAttribute(FotaProjectID);
+        return Result.success(attribute,"attribute");
+    }
 }

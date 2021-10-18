@@ -11,7 +11,6 @@ import com.simit.fota.security.DefaultPasswordEncoder;
 import com.simit.fota.service.UserService;
 import com.simit.fota.util.JWTTokenUtil;
 import com.simit.fota.util.ValidatorUtil;
-import com.sun.istack.internal.Nullable;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -114,8 +113,6 @@ public class UserController {
     @PreAuthorize("hasAuthority('admin')")
     @GetMapping("/list")
     public Result<Page<User>> getUsers(  Page page,HttpServletRequest request){
-
-        System.out.println(page);
         Page<User> result = userService.getUserList(page);
         return Result.success(result,"user");
     }

@@ -10,9 +10,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Version {
-    @JsonProperty("versionId")
+    @JsonProperty("Version_ID")
     private Integer ID;
-
+    @JsonProperty("Fota_Project_ID")
     private Integer FotaProjectID;
 
     private String VersionName;

@@ -61,11 +61,13 @@ public class TokenAuthFilter extends BasicAuthenticationFilter {
         String token = request.getHeader("token");
         String token1 = request.getHeader("authorization");
 
+
         if (StringUtils.isEmpty(token)){
             token = token1;
         }
 
         if(token != null) {
+            request.setAttribute("token",token);
             //从token获取用户名
             String username = JWTTokenUtil.getUserInfoFromToken(token);
             System.out.println(username);

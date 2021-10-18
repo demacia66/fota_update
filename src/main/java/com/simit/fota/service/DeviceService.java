@@ -54,6 +54,10 @@ public class DeviceService {
             throw new GlobalException(CodeMsg.IMEI_EMPTY);
         }
 
+        if (device.getIMEI().length() != 15){
+            throw new GlobalException(CodeMsg.IMEI_LENGTH_ERROR);
+        }
+
         Device device1 = deviceMapper.findByIMEI(device.getIMEI());
         if (device1 != null) {
             throw new GlobalException(CodeMsg.IMEI_DUPLICATE);
@@ -134,28 +138,19 @@ public class DeviceService {
         int totalCount = deviceMapper.findDeviceCount();
         if (page == null) {
             page = new Page();
+        }else if (page.getOrderField() == null){
+            page = new Page(totalCount, page.getCurrentPage(), page.getPageSize());
+        }else {
+            page = new Page(totalCount,page.getOrderType(),page.getOrderField(),page.getCurrentPage(),page.getPageSize());
         }
-        page.setTotalPage(totalCount / page.getPageSize() );
-        page.setTotalCount(totalCount);
 
-        if (page.getCurrentPage() == null) {
-            page.setCurrentPage(1);
-        }
-        if (page.getPageSize() == null) {
-            page.setPageSize(10);
-        }
-        if (page.getCurrentPage() <= 0) {
-            page.setCurrentPage(1);
-        }
-        if (page.getPageSize() * (page.getCurrentPage() - 1) > totalCount) {
-            page.setCurrentPage(totalCount);
-        }
-        page.setStartRow((page.getCurrentPage() - 1) * page.getPageSize());
         List<Device> devices = deviceMapper.findAllDevices(page);
+
         for (Device device : devices) {
             if (device.getLastTs() != null) {
                 device.setLast_ts(DateFormatUtil.formatDate(device.getLastTs()));
             }
+            device.setCreate_ts(DateFormatUtil.formatDate(device.getCreateTs()));
         }
         page.setDataList(devices);
         return page;
@@ -220,6 +215,9 @@ public class DeviceService {
             if (cur instanceof Device) {
                 Device device = (Device) cur;
                 if (!StringUtils.isEmpty(device.getIMEI()) && !"IMEI".equals(device.getIMEI())) {
+                    if (!(device.getIMEI().length() == 15)){
+                        throw new GlobalException(CodeMsg.IMEI_LENGTH_ERROR);
+                    }
                     deviceList.add(device);
                 }
             }
@@ -228,7 +226,7 @@ public class DeviceService {
         insertOrUpdateDevice(deviceList);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void insertOrUpdateDevice(List<Device> deviceList) {
         for (Device device : deviceList) {
             System.out.println(device);
@@ -249,47 +247,30 @@ public class DeviceService {
     }
 
     public Page<IMEIKV> getDeviceReport(String imei,Page page) {
+
         int totalCount = deviceMapper.findReportCount(imei);
 
-        if (totalCount == 0){
-            List<IMEIKV> imeikvs = new ArrayList<>();
-            Page<IMEIKV> res = new Page<>();
-            page.setTotalCount(0);
-            page.setTotalPage(0);
-            page.setCurrentPage(0);
-            page.setDataList(imeikvs);
-            return page;
-        }
         if (page == null) {
             page = new Page();
+            page.setOrderField("ts");
+            page.setOrderType("desc");
+        }else if (page.getOrderField() == null || page.getOrderField().equals("ID")){
+            page = new Page(totalCount, page.getCurrentPage(), page.getPageSize());
+            page.setOrderField("ts");
+            page.setOrderType("desc");
+        }else {
+            page = new Page(totalCount,page.getOrderType(),page.getOrderField(),page.getCurrentPage(),page.getPageSize());
         }
 
-        page.setTotalPage(totalCount / page.getPageSize() );
-        page.setTotalCount(totalCount);
-
-        if (page.getCurrentPage() == null && totalCount != 0) {
-            page.setCurrentPage(1);
-        }
-
-        if (page.getPageSize() == null) {
-            page.setPageSize(10);
-        }
-
-        if (page.getCurrentPage() <= 0) {
-            page.setCurrentPage(1);
-        }
-
-        if (page.getPageSize() * (page.getCurrentPage() - 1) > totalCount) {
-            page.setCurrentPage(totalCount);
-        }
-        page.setStartRow((page.getCurrentPage() - 1) * page.getPageSize());
         List<IMEIKV> pageData = deviceMapper.findAllReports(imei,page);
         for (IMEIKV cur : pageData) {
             if (cur.getTs() != null) {
                 cur.setReportTs(DateFormatUtil.formatDate(cur.getTs()));
             }
         }
+
         page.setDataList(pageData);
+
         return page;
     }
 }

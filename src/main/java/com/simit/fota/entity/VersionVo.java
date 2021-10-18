@@ -19,8 +19,8 @@ public class VersionVo {
     @JsonProperty("Description")
     private String Description;
 
-    @JsonProperty("Create_ts")
-    private String Create_ts;
+    @JsonProperty("CreateTs")
+    private String ts;
 
     @JsonProperty("Create_ts")
     private Long CreateTs;

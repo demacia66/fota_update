@@ -58,7 +58,7 @@ public interface VersionMapper {
      * 删除版本相关的关系
      * @param version
      */
-    @Update("update Version_Relation set delTag = '1' where Fota_Project_ID = #{FotaProjectID} and (Version_ID = #{ID} or Prev_Version_ID = #{ID} or Next_Version_ID = #{ID})")
+    @Update("update Version_Relation set delTag = '1' where Fota_Project_ID = #{FotaProjectID} and (Version_ID = #{ID} or Prev_Version_ID = #{ID} )")
     void delVersionRelation(Version version);
 
     /**
@@ -91,7 +91,7 @@ public interface VersionMapper {
      * @param fotaProjectId
      * @return
      */
-    @Select("select * from Version_Library where Fota_Project_ID = #{fotaProjectId} and delTag != '1' order by ID DESC limit #{page.startRow},#{page.pageSize}")
+    @Select("select * from Version_Library where Fota_Project_ID = #{fotaProjectId} and delTag != '1' order by ${page.orderField} ${page.orderType} limit #{page.startRow},#{page.pageSize} ")
     List<VersionVo> findVersionsByPId(@Param("fotaProjectId") Integer fotaProjectId,@Param("page") Page page);
 
     @Select("select Version_Name from Version_Library where Fota_Project_ID = #{fotaProjectId} and delTag != '1' order by ID ")
@@ -107,6 +107,12 @@ public interface VersionMapper {
             "#{FileName},#{FileURL},#{FileMD5},#{UploadTs})")
     void insertVersionFile(VersionFiles versionFiles);
 
+    @Update("update Version_Files set FileName = #{FileName},FileURL = #{FileURL},FileMD5 = #{FileMD5},Upload_ts = #{UploadTs} where  Version_ID = #{VersionID} and Fota_Project_ID = #{FotaProjectID}")
+    void updateVersionFile(VersionFiles versionFiles);
+
+    @Select("select * from Version_Files where Version_ID = #{versionId} and Fota_Project_ID = #{projectId}")
+    List<VersionFiles> findVersionFile(@Param("versionId") Integer versionId,@Param("projectId") Integer projectId);
+
     /**
      * 插入项目中的第一个数据
      * @param relation
@@ -117,4 +123,13 @@ public interface VersionMapper {
 
     @Update("update Version_Relation set Next_Version_ID = #{VersionID} where Version_ID = #{PrevVersionID} and Fota_Project_ID = #{FotaProjectID}")
     int updateRelation(VersionRelation relation);
+
+    @Update("update Version_Library set delTag = '1' where Fota_Project_ID = #{projectId}")
+    void delVersionByPid(@Param("projectId") Integer projectId);
+
+    @Update("update Version_Relation set delTag = '1' where Fota_Project_ID = #{projectId}")
+    void delVersionRelationByPid(@Param("projectId")Integer projectId);
+
+    @Update("update Version_Relation set Next_Version_ID = '0' where Next_Version_ID = #{ID}")
+    void updateNextVersion(Version version);
 }

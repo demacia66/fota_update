@@ -1,5 +1,6 @@
 package com.simit.fota.controller;
 
+import com.simit.fota.annotation.LoginRequired;
 import com.simit.fota.entity.*;
 import com.simit.fota.exception.GlobalException;
 import com.simit.fota.result.CodeMsg;
@@ -42,11 +43,13 @@ public class VersionController {
      * @param version 封装项目id和版本id
      * @return
      */
-    @DeleteMapping("/del")
-    public Result<Boolean> deleteVersion(@RequestBody Version version) {
+    @DeleteMapping("/del/{Fota_Project_ID}/{Version_ID}")
+    public Result<Boolean> deleteVersion(@RequestBody Version version,@PathVariable("Fota_Project_ID") Integer fotaProjectId,@PathVariable("Version_ID") Integer versionId) {
         if (version == null) {
             throw new GlobalException(CodeMsg.PARAM_ERROR);
         }
+        version.setFotaProjectID(fotaProjectId);
+        version.setID(versionId);
         if (version.getFotaProjectID() == null) {
             throw new GlobalException(CodeMsg.PROJECT_ID_EMPTY);
         }
@@ -154,6 +157,7 @@ public class VersionController {
     }
 
     @GetMapping("/download")
+    @LoginRequired
     public Result<Boolean> downloadFile(String fileName, HttpServletResponse response) {
         System.out.println(fileName);
         System.out.println(uploadPath + "\\" + fileName);
@@ -180,5 +184,31 @@ public class VersionController {
             throw new GlobalException(CodeMsg.FILE_NOT_EXIST);
         }
         return Result.success(true, "download");
+    }
+
+
+    @PutMapping("/edit/{Fota_Project_ID}/{Version_ID}")
+    public Result<Boolean> updateVersion(VersionUpload versionUpload,@PathVariable("Fota_Project_ID") Integer projectId,@PathVariable("Version_ID") Integer versionId){
+        if (projectId == null){
+            throw new GlobalException(CodeMsg.PROJECT_ID_EMPTY);
+        }
+        if (versionId == null){
+            throw new GlobalException(CodeMsg.VERSIONID_EMPTY);
+        }
+        versionService.doUpdate(versionUpload,projectId,versionId);
+        return Result.success(true,"version");
+    }
+
+
+    @GetMapping("/edit/{Fota_Project_ID}/{Version_ID}")
+    public Result<Version> getVersionAttribute(@PathVariable("Fota_Project_ID") Integer projectId,@PathVariable("Version_ID") Integer versionId){
+        if (projectId == null){
+            throw new GlobalException(CodeMsg.PROJECT_ID_EMPTY);
+        }
+        if (versionId == null){
+            throw new GlobalException(CodeMsg.VERSIONID_EMPTY);
+        }
+        Version version = versionService.findVersionById(projectId,versionId);
+        return Result.success(version,"version");
     }
 }

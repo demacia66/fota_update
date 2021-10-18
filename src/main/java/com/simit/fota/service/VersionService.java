@@ -5,12 +5,14 @@ import com.simit.fota.entity.*;
 import com.simit.fota.exception.GlobalException;
 import com.simit.fota.result.CodeMsg;
 import com.simit.fota.result.Page;
+import com.simit.fota.util.DateFormatUtil;
 import com.simit.fota.util.FotaUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -35,6 +37,12 @@ public class VersionService {
 
     @Value("${fullfile}")
     private String fullFile1;
+
+
+    public void deleteProjectVersion(Integer projectId){
+        versionMapper.delVersionByPid(projectId);
+        versionMapper.delVersionRelationByPid(projectId);
+    }
 
     /**
      * 新建版本
@@ -103,8 +111,17 @@ public class VersionService {
         Version version1 = versionMapper.findVersionByVId(version);
         if (version1 != null && !"1".equals(version1.getDelTag())) {
             //删除版本和版本的关系
+            Version initialVersion = findInitialVersion(version1.getFotaProjectID());
+            if (!(initialVersion == null) && initialVersion.getID().equals(version1.getID())){
+                throw new GlobalException(CodeMsg.DELETE_INTIAL_VERSION);
+            }
+            String curVersion = curVersion(version1.getFotaProjectID());
+            if (!curVersion.equals(version1.getVersionName())){
+                throw new GlobalException(CodeMsg.DELETE_CURVERSION);
+            }
             versionMapper.delVersion(version);
             versionMapper.delVersionRelation(version);
+            versionMapper.updateNextVersion(version);
         } else {
             throw new GlobalException(CodeMsg.VERSION_NOT_EXIST);
         }
@@ -121,16 +138,22 @@ public class VersionService {
 
         //处理页面信息
         int totalCount = versionMapper.findVersionCount(fotaProjectId);
+
         if (page == null) {
             page = new Page();
-        } else {
+            page.setOrderType("desc");
+        }else if (page.getOrderField() == null){
             page = new Page(totalCount, page.getCurrentPage(), page.getPageSize());
+            page.setOrderType("desc");
         }
 
         //找到项目的版本列表
         List<VersionVo> versionList = versionMapper.findVersionsByPId(fotaProjectId, page);
         if (versionList == null) {
             versionList = new ArrayList<>();
+        }
+        for (VersionVo cur:versionList){
+            cur.setTs(DateFormatUtil.formatDate(cur.getCreateTs()));
         }
         page.setDataList(versionList);
         return page;
@@ -216,5 +239,66 @@ public class VersionService {
     public List<String> findVersionsByPid(Integer id) {
 
         return versionMapper.findVersionNamesByPId(id);
+    }
+
+    public List<VersionFiles> findVersionFile(Integer fotaProjectID, Integer id) {
+        return versionMapper.findVersionFile(id,fotaProjectID);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void doUpdate(VersionUpload versionUpload, Integer projectId, Integer versionId) {
+        Version version = new Version();
+        version.setID(versionId);
+        version.setFotaProjectID(projectId);
+        Version findVersion = versionMapper.findVersionByVId(version);
+
+        if (findVersion == null){
+            throw new GlobalException(CodeMsg.VERSION_NOT_EXIST);
+        }
+
+        if (StringUtils.isEmpty(versionUpload.getVersionName())){
+            version.setVersionName(findVersion.getVersionName());
+        }else {
+            version.setVersionName(versionUpload.getVersionName());
+        }
+
+        if (StringUtils.isEmpty(versionUpload.getDescription())){
+            version.setDescription(findVersion.getDescription());
+        }else {
+            version.setDescription(versionUpload.getDescription());
+        }
+
+
+        versionMapper.updateVersionById(version);
+
+
+        MultipartFile fullFile = versionUpload.getFullFile();
+        if (fullFile != null) {
+            VersionFiles versionFiles = uploadFile(fullFile);
+            versionFiles.setFileType("1");
+            versionFiles.setFotaProjectID(versionUpload.getFotaProjectID());
+            versionFiles.setVersionID(versionId);
+            versionMapper.updateVersionFile(versionFiles);
+        }
+
+        MultipartFile differFile = versionUpload.getDifferFile();
+        if (differFile != null){
+            VersionFiles versionFiles = uploadFile(differFile);
+            versionFiles.setFileType("0");
+            versionFiles.setFotaProjectID(versionUpload.getFotaProjectID());
+            versionMapper.updateVersionFile(versionFiles);
+        }
+    }
+
+    public Version findVersionById(Integer projectId, Integer versionId) {
+        Version version = new Version();
+        version.setID(versionId);
+        version.setFotaProjectID(projectId);
+        Version versionByVId = versionMapper.findVersionByVId(version);
+        if(versionByVId == null){
+            throw new GlobalException(CodeMsg.VERSION_NOT_EXIST);
+        }
+        versionByVId.setTs(DateFormatUtil.formatDate(versionByVId.getCreateTs()));
+        return versionByVId;
     }
 }

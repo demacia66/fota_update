@@ -1,0 +1,29 @@
+1.1 打开Zabbix虚拟机
+1.2 关闭防火墙，测试是否可以ping通此主机
+1.3 打开http://172.16.10.10/index.php，登录zabbix主页
+
+2.1 打开SystemLink虚拟机
+2.2 打开http://172.16.10.11/，登录SystemLink主页
+
+
+
+
+3.1. 在Thongsboard虚拟机中依次启动redis、mysql容器（交换机要提前跑起来，要不然各个主机之间ping不通）
+docker start redis
+docker start mysql
+docker start systemlinkweb
+启动结束后，使用RedisDesktopManager和Navicat测试是否可以连接上
+
+3.2. 依次启动下面几个动态路由配置相关的容器
+[root@localhost ~]# docker start oauth-service 
+oauth-service
+[root@localhost ~]# docker start eureka-service 
+eureka-service
+[root@localhost ~]# docker start dynamic-route-service 
+dynamic-route-service
+[root@localhost ~]# docker start gateway-service 
+gateway-service
+
+3.3 启动结束后，访问http://172.16.10.12:15761/看看服务实体是否建立
+
+4 在宿主机上打开scheduled-task项目，在idea中运行

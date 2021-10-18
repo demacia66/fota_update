@@ -53,6 +53,7 @@ public class ProjectService {
 
     public void deleteProject(Integer projectId){
         projectMapper.delProjectById(projectId);
+        versionService.deleteProjectVersion(projectId);
     }
 
     public List<String> findAllProject() {
@@ -77,12 +78,19 @@ public class ProjectService {
         int totalCount = projectMapper.findProjectCount();
         if (page == null) {
             page = new Page();
-        }else {
+            page.setOrderType("desc");
+        }else if (page.getOrderField() == null){
             page = new Page(totalCount, page.getCurrentPage(), page.getPageSize());
+            page.setOrderType("desc");
+        }
+
+        if (page.getOrderField().equals("Fota_Project_ID")){
+            page.setOrderField("ID");
         }
 
         //项目信息
         List<FotaProject> projects = projectMapper.findAllProjects(page);
+
         if (projects == null || projects.size() == 0){
             page.setDataList(new ArrayList());
             return page;
@@ -133,5 +141,21 @@ public class ProjectService {
         }
         version.setDescription(project.getDescription());
         versionService.updateInitialVersion(version);
+    }
+
+    public ProjectAttribute findProjectAttribute(Integer fotaProjectID) {
+        FotaProject projectById = projectMapper.findProjectById(fotaProjectID);
+        if (projectById == null){
+            throw new GlobalException(CodeMsg.PROJECT_NOT_EXIST);
+        }
+        ProjectAttribute result = new ProjectAttribute();
+        result.setID(fotaProjectID);
+        result.setCreateTs(projectById.getCreateTs());
+        String curVersion = versionService.curVersion(fotaProjectID);
+        result.setCurVersion(curVersion);
+        result.setTs(DateFormatUtil.formatDate(projectById.getCreateTs()));
+        result.setCreator(projectById.getCreator());
+        result.setFotaProjectName(projectById.getFotaProjectName());
+        return result;
     }
 }

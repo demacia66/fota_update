@@ -16,6 +16,10 @@ public class Page<T> {
     @JsonIgnore
     private int totalPage;
 
+    private String orderType = "asc";
+
+    private String orderField = "ID";
+
     //当前页数
     private Integer currentPage = 1;
 
@@ -50,8 +54,33 @@ public class Page<T> {
         this.startRow = (this.currentPage - 1) * this.pageSize;
     }
 
+    public Page(int totalCount, String orderType, String orderField, Integer currentPage, Integer pageSize) {
+        this.orderType = orderType;
+        this.orderField = orderField;
+        if (totalCount == 0){
+            this.currentPage = 0;
+            this.pageSize = 0;
+            this.totalCount = 0;
+            this.totalPage = 0;
+            return;
+        }
+        if (pageSize == null){
+            pageSize = 10;
+        }
+        if (currentPage == null || currentPage.compareTo(0) < 0){
+            currentPage = 1;
+        }
+        this.totalCount = totalCount;
+        this.totalPage = totalCount / pageSize;
+        this.pageSize = pageSize;
+        this.currentPage = currentPage;
+        if (this.pageSize * (this.currentPage - 1) > this.totalCount){
+            this.currentPage = totalPage;
+        }
+        this.startRow = ((this.currentPage - 1) * this.pageSize);
+    }
 
-    public Page(int totalCount,Integer currentPage,Integer pageSize){
+    public Page(int totalCount, Integer currentPage, Integer pageSize){
         if (totalCount == 0){
             this.currentPage = 0;
             this.pageSize = 0;

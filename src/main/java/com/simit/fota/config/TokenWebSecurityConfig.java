@@ -87,6 +87,8 @@ public class TokenWebSecurityConfig extends WebSecurityConfigurerAdapter {
         web.ignoring().antMatchers("/v2/**");
         web.ignoring().antMatchers("/api/**");
         web.ignoring().antMatchers("/test/**");
-
+        web.ignoring().antMatchers("/fota/api/authent");
+        web.ignoring().antMatchers("/fota/api/check");
+        web.ignoring().antMatchers("/fota/api/ver/download");
     }
 }

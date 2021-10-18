@@ -26,6 +26,7 @@ public class RedisService {
     public <T> T get(KeyPrefix prefix,String key,Class<T> clazz){
         try (Jedis jedis = jedisPool.getResource()){
             //生成key
+            jedis.select(3);
             String realKey = prefix.getPrefix() + key;
             String str = jedis.get(realKey);
             T t = stringToBean(str,clazz);
@@ -35,6 +36,7 @@ public class RedisService {
     public List<String> get(KeyPrefix prefix, String key){
         try (Jedis jedis = jedisPool.getResource()){
             //生成key
+            jedis.select(3);
             String realKey = prefix.getPrefix() + key;
             String str = jedis.get(realKey);
             return stringToList(str);
@@ -47,6 +49,7 @@ public class RedisService {
      */
     public <T> boolean set(KeyPrefix prefix,String key,T value){
         try (Jedis jedis = jedisPool.getResource()){
+            jedis.select(3);
             String str = beanToString(value);
             if (str == null || str.length() <= 0){
                 return false;
@@ -65,7 +68,7 @@ public class RedisService {
 
     public <T> boolean remove(KeyPrefix prefix,String key){
         try (Jedis jedis = jedisPool.getResource()){
-
+            jedis.select(3);
             String realKey = prefix.getPrefix() + key;
             //过期时间
             jedis.del(realKey);

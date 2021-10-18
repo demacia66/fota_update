@@ -27,6 +27,9 @@ public class RedisConfig {
 
     private int timeout;
 
+    @Value("${spring.redis.password}")
+    private String password;
+
     @Value("${spring.redis.lettuce.pool.max-idle}")
     private int poolMaxIdle;
 

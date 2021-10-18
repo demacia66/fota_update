@@ -61,6 +61,7 @@ public class CodeMsg {
     public static CodeMsg TYPE_NOT_EXIST  = new CodeMsg(500503,"type not exist");
     public static CodeMsg IMEI_DUPLICATE = new CodeMsg(500503,"IMEI duplicate");
     public static CodeMsg DEVICE_NOT_EXIST = new CodeMsg(500504,"device not exist");
+    public static CodeMsg IMEI_LENGTH_ERROR = new CodeMsg(500505,"imei 应为15位");
 
     //项目模块
     public static CodeMsg PROJECT_NOT_EXIST = new CodeMsg(500601,"project not exist");
@@ -78,7 +79,8 @@ public class CodeMsg {
     public static CodeMsg VERSION_NAME_EMPTY= new CodeMsg(500706,"version name empty");
     public static CodeMsg PREVERSION_EMPTY= new CodeMsg(500707,"preversion empty");
     public static CodeMsg PREVERSION_NOT_EXIST= new CodeMsg(500708,"preversion not exist");
-
+    public static CodeMsg DELETE_INTIAL_VERSION= new CodeMsg(500709,"DELETE_INTIAL_VERSION");
+    public static CodeMsg DELETE_CURVERSION= new CodeMsg(500710,"只能删除当前版本");
 
 
     public static CodeMsg TOKEN_INVALID = new CodeMsg(403,"token invalid");
