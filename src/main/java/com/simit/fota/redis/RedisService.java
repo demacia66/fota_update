@@ -1,6 +1,7 @@
 package com.simit.fota.redis;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
@@ -8,6 +9,7 @@ import redis.clients.jedis.JedisPool;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author ycy
@@ -75,6 +77,76 @@ public class RedisService {
             return true;
         }
     }
+    public boolean insertZset(String key,String value,Double score){
+        try (Jedis jedis = jedisPool.getResource()){
+            jedis.select(3);
+            //过期时间
+            jedis.zadd(key,score,value);
+            return true;
+        }
+    }
+
+    public <T> List<T> getZRange(String key,int startRow,int limit,Class<T> clazz){
+        try (Jedis jedis = jedisPool.getResource()){
+            jedis.select(3);
+            Set<String> zrange = jedis.zrange(key, startRow, startRow + limit - 1);
+            List<T> res = getFromSet(zrange,clazz);
+            return res;
+        }
+    }
+
+    public long getZsetCount(String key){
+        try (Jedis jedis = jedisPool.getResource()){
+            jedis.select(3);
+            return jedis.zcard(key);
+        }
+    }
+
+
+    public <T> List<T> getListByKey(String key,Class<T> clazz,int startRow,int size){
+        try(Jedis jedis = jedisPool.getResource()) {
+            jedis.select(3);
+            List<String> lrange = jedis.lrange(key, startRow, startRow + size - 1);
+            return getFromList(lrange,clazz);
+        }
+    }
+
+    private <T> List<T> getFromSet(Set<String> zrange, Class<T> clazz) {
+        List<T> list = new ArrayList<>();
+        for (String cur : zrange){
+            list.add(JSONObject.parseObject(cur,clazz));
+        }
+        return list;
+    }
+
+    public boolean pushList(String key,String value){
+        try(Jedis jedis = jedisPool.getResource()) {
+            jedis.select(3);
+            jedis.lpush(key,value);
+            if (jedis.llen(key) > 30){
+                for (int i = 0; i < 10; i++) {
+                    jedis.rpop(key);
+                }
+            }
+            return true;
+        }
+    }
+
+    private <T> List<T> getFromList(List<String> zrange, Class<T> clazz) {
+        List<T> list = new ArrayList<>();
+        for (String cur : zrange){
+            list.add(JSONObject.parseObject(cur,clazz));
+        }
+        return list;
+    }
+
+    public Long getListCount(String key){
+        try(Jedis jedis = jedisPool.getResource()) {
+            jedis.select(3);
+            return jedis.llen(key);
+        }
+    }
+
 
     private <T> String beanToString(T value) {
         if (value == null){

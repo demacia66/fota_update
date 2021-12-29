@@ -107,4 +107,11 @@ public class TestController {
         }
         return Result.success(true,"download");
     }
+
+    @GetMapping("/test/a")
+    public List<String> a(){
+        List<String> a = new ArrayList<>();
+        a.add("22");
+        return a;
+    }
 }

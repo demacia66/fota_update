@@ -87,7 +87,8 @@ public class ProjectService {
         if (page.getOrderField().equals("Fota_Project_ID")){
             page.setOrderField("ID");
         }
-
+        page.setTotalCount(totalCount);
+        page.setStartRow((page.getCurrentPage() - 1) * page.getPageSize());
         //项目信息
         List<FotaProject> projects = projectMapper.findAllProjects(page);
 

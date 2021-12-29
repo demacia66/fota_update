@@ -60,4 +60,12 @@
         )
     </update>
 
+    <select id="findIMEIS" resultType="java.lang.Integer">
+        select ID from IMEI_Attribute where IMEI in(
+        <foreach collection="imeis" separator="," item="item" index="index">
+            ${item}
+        </foreach>
+        )
+    </select>
+
 </mapper>

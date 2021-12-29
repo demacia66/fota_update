@@ -107,11 +107,17 @@ public interface VersionMapper {
             "#{FileName},#{FileURL},#{FileMD5},#{UploadTs})")
     void insertVersionFile(VersionFiles versionFiles);
 
-    @Update("update Version_Files set FileName = #{FileName},FileURL = #{FileURL},FileMD5 = #{FileMD5},Upload_ts = #{UploadTs} where  Version_ID = #{VersionID} and Fota_Project_ID = #{FotaProjectID}")
+    @Update("update Version_Files set FileName = #{FileName},FileURL = #{FileURL},FileMD5 = #{FileMD5},Upload_ts = #{UploadTs} where  Version_ID = #{VersionID} and Fota_Project_ID = #{FotaProjectID} and File_Type = #{FileType}")
     void updateVersionFile(VersionFiles versionFiles);
 
     @Select("select * from Version_Files where Version_ID = #{versionId} and Fota_Project_ID = #{projectId}")
     List<VersionFiles> findVersionFile(@Param("versionId") Integer versionId,@Param("projectId") Integer projectId);
+
+    @Select("select * from Version_Files where Version_ID = #{versionId} and Fota_Project_ID = #{projectId} and File_Type = '1' ")
+    VersionFiles findfullFile(@Param("versionId") Integer versionId,@Param("projectId") Integer projectId);
+
+    @Select("select * from Version_Files where Version_ID = #{versionId} and Fota_Project_ID = #{projectId} and File_Type = '0' ")
+    VersionFiles findDifferFile(@Param("versionId") Integer versionId,@Param("projectId") Integer projectId);
 
     /**
      * 插入项目中的第一个数据
@@ -132,4 +138,7 @@ public interface VersionMapper {
 
     @Update("update Version_Relation set Next_Version_ID = '0' where Next_Version_ID = #{ID}")
     void updateNextVersion(Version version);
+
+    @Select("select count(*) from Version_Library where Version_Name = #{version}")
+    int findVersionName(@Param("version") String version);
 }

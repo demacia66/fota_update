@@ -87,6 +87,10 @@ public class CodeMsg {
     public static CodeMsg EXCEL_INVALID = new CodeMsg(500800,"上传文件不符合要求哦");
     public static CodeMsg FILE_UPLOAD_ERROR = new CodeMsg(500800,"文件上传出错");
     public static CodeMsg FILE_NOT_EXIST = new CodeMsg(500801,"文件不存在");
+    public static CodeMsg TASKID_EMPTY = new CodeMsg(500802,"task id empty");
+
+
+    public static  CodeMsg FILE_TYPE_EMPTY = new CodeMsg(500802,"file_type empty");
 
 
     public CodeMsg(int code, String msg) {

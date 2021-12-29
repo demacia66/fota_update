@@ -34,6 +34,9 @@ public class DeviceInterceptor implements HandlerInterceptor {
                     return false;
                 }
                 String id = httpServletRequest.getParameter("id");
+                if (StringUtils.isEmpty(id)){
+                    id = httpServletRequest.getParameter("imei");
+                }
                 if (StringUtils.isEmpty(id) || id.length() != 15){
                     return false;
                 }

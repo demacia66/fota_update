@@ -1,5 +1,6 @@
 package com.simit.fota.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,8 +13,8 @@ import org.springframework.web.multipart.MultipartFile;
 @AllArgsConstructor
 public class VersionUpload {
 
-    private String VersionName;
 
+    private String Version_Name;
 
     private Integer FotaProjectID;
 

@@ -73,15 +73,15 @@ public class DeviceService {
         }
 
         //project检查
-        FotaProject project = projectMapper.findProjectByName(device.getProject());
-        if (project == null) {
-            throw new GlobalException(CodeMsg.PROJECT_NOT_EXIST);
-        }
+//        FotaProject project = projectMapper.findProjectByName(device.getProject());
+//        if (project == null) {
+//            throw new GlobalException(CodeMsg.PROJECT_NOT_EXIST);
+//        }
 
-        Version versionByPidVname = versionService.findVersionByPidVname(project.getID(), device.getSWRlse());
-        if (versionByPidVname == null){
-            throw new GlobalException(CodeMsg.SW_RLSE_NOT_EXIST);
-        }
+//        int swlrse = versionService.findSwlrse(device.getSWRlse());
+//        if (swlrse <= 0){
+//            throw new GlobalException(CodeMsg.SW_RLSE_NOT_EXIST);
+//        }
 
         //检查网络类型
         if (!StringUtils.isEmpty(device.getNetworkType())) {
@@ -111,6 +111,7 @@ public class DeviceService {
         device.setCreateTs(System.currentTimeMillis());
 
         deviceMapper.insertDevice(device);
+
 
     }
 
@@ -166,17 +167,18 @@ public class DeviceService {
         if (!StringUtils.isEmpty(device.getIMEI()) && !device.getIMEI().equals(IMEI)) {
             throw new GlobalException(CodeMsg.PARAM_ERROR);
         }
+
         Device device1 = deviceMapper.findByIMEI(IMEI);
         if (device1 == null) {
             throw new GlobalException(CodeMsg.DEVICE_NOT_EXIST);
         }
-        if (device.getSWRlse() != null){
-            FotaProject name = projectMapper.findProjectByName(device1.getProject());
-            Version version = versionService.findVersionByPidVname(name.getID(), device.getSWRlse());
-            if (version == null){
-                throw new GlobalException(CodeMsg.SW_RLSE_NOT_EXIST);
-            }
-        }
+//        if (device.getSWRlse() != null){
+//            FotaProject name = projectMapper.findProjectByName(device1.getProject());
+//            Version version = versionService.findVersionByPidVname(name.getID(), device.getSWRlse());
+//            if (version == null){
+//                throw new GlobalException(CodeMsg.SW_RLSE_NOT_EXIST);
+//            }
+//        }
         if (device.getNetworkType() == null && device.getManufacturerBrand() == null && device.getSWRlse() == null) {
             return;
         }
@@ -207,7 +209,7 @@ public class DeviceService {
         deviceMapper.deleteDevicesInKVL(imeis);
     }
 
-    public void importDevices(MultipartFile file) throws IllegalAccessException, IntrospectionException, IOException, InstantiationException, InvocationTargetException, NoSuchFieldException {
+    public List<Device> importDevices(MultipartFile file) throws IllegalAccessException, IntrospectionException, IOException, InstantiationException, InvocationTargetException, NoSuchFieldException {
         List<Object> res = ExcelRead.readExcelByPOJO(file, Device.class);
         List<Device> deviceList = new ArrayList<>();
         for (Object cur : res) {
@@ -224,6 +226,7 @@ public class DeviceService {
 
         }
         insertOrUpdateDevice(deviceList);
+        return deviceList;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -271,6 +274,33 @@ public class DeviceService {
 
         page.setDataList(pageData);
 
+        return page;
+    }
+
+
+    public List<Integer> findIMEI(List<String> imeis) {
+        return deviceMapper.findIMEIS(imeis);
+    }
+
+    public Page<Device> getDeviceList(Page page, String imei) {
+        int totalCount = deviceMapper.findDeviceCountIMEI(imei);
+        if (page == null) {
+            page = new Page();
+        }else if (page.getOrderField() == null){
+            page = new Page(totalCount, page.getCurrentPage(), page.getPageSize());
+        }else {
+            page = new Page(totalCount,page.getOrderType(),page.getOrderField(),page.getCurrentPage(),page.getPageSize());
+        }
+
+        List<Device> devices = deviceMapper.findAllDevicesIMEI(page,imei);
+
+        for (Device device : devices) {
+            if (device.getLastTs() != null) {
+                device.setLast_ts(DateFormatUtil.formatDate(device.getLastTs()));
+            }
+            device.setCreate_ts(DateFormatUtil.formatDate(device.getCreateTs()));
+        }
+        page.setDataList(devices);
         return page;
     }
 }

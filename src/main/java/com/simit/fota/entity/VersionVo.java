@@ -24,4 +24,7 @@ public class VersionVo {
 
     @JsonProperty("Create_ts")
     private Long CreateTs;
+
+    @JsonProperty("flag")
+    private String flag;
 }

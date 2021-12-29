@@ -2,23 +2,23 @@ package com.simit.fota.controller;
 
 import com.simit.fota.annotation.LoginRequired;
 import com.simit.fota.dao.DeviceMapper;
-import com.simit.fota.entity.CheckVo;
-import com.simit.fota.entity.Device;
-import com.simit.fota.entity.ReportVo;
+import com.simit.fota.entity.*;
 import com.simit.fota.redis.RedisService;
-import com.simit.fota.result.BaseResult;
-import com.simit.fota.result.CheckResult;
-import com.simit.fota.result.FotaResult;
+import com.simit.fota.result.*;
 import com.simit.fota.service.DeviceService;
 import com.simit.fota.service.HardwareService;
+import com.simit.fota.service.TaskService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.UnknownHostException;
+import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/fota/api")
+@Slf4j
 public class HardwareController {
 
     @Autowired
@@ -27,8 +27,12 @@ public class HardwareController {
     @Autowired
     private HardwareService hardwareService;
 
+    @Autowired
+    private TaskService taskService;
+
     @GetMapping("/authent")
     public FotaResult deviceLogin(String id, String version){
+
         String IMEI = id;
         FotaResult result = new FotaResult();
         result.setState("ok");
@@ -58,7 +62,14 @@ public class HardwareController {
             result.setTicket(loginRes.get("ticket"));
         }
         result.setMessage(loginRes.get("message"));
+        result.setMessage("");
+        log.info(loginRes.get("message"));
         hardwareService.reportAuth(result);
+        Integer IMEIID = taskService.findTaskByIMEI(IMEI);
+        if (IMEIID != null){
+
+            taskService.updateStatus(IMEIID,"02");
+        }
         return result;
     }
 
@@ -66,6 +77,7 @@ public class HardwareController {
     @GetMapping("/check")
     public CheckResult checkVersion(CheckVo checkVo, @RequestParam("product_name") String productName,
                                     @RequestParam("product_version") String productVersion) throws Exception {
+        log.error("开始check");
         CheckResult result = new CheckResult();
         result.setAction("check");
         result.setIMEI(checkVo.getId());
@@ -106,13 +118,16 @@ public class HardwareController {
             result.setUpdate(false);
         }
 
-        result.setContent(res.get("content"));
+        result.setContent(res.get("content") == null ? "":res.get("content"));
 
         result.setCurrentVersion(res.get("current_version"));
 
-        result.setDate(Long.parseLong(res.get("date")));
+        if (res.get("date") != null){
+            result.setDate(Long.parseLong(res.get("date")));
+        }
 
         result.setUrl(res.get("url"));
+//        result.setUrl("http://fotafile1.ranchip.com:7788/7d45b2c4b96941c98b4e8862c52e78bf.pack");
 
         result.setFileMd5(res.get("file_md5"));
 
@@ -124,6 +139,7 @@ public class HardwareController {
     @LoginRequired
     @PostMapping("/report")
     public BaseResult reportUpload(ReportVo reportVo,@RequestParam("product_name") String productName,@RequestParam("upgrade_result") String upgradeResult){
+        //imei=865602040244987&&version=N23-R03-ZKY-05B&&company=neoway&&project=N23&&token=bb34aba5562b56c97411a72f44d399f1 HTTP/1.1\r\n]
         BaseResult result = new BaseResult();
         reportVo.setProductName(productName);
         reportVo.setUpgradeResult(upgradeResult);
@@ -153,7 +169,56 @@ public class HardwareController {
             return result;
         }
         Map<String,String> res = hardwareService.reportUpload(reportVo);
+        result.setMessage(res.get("message"));
         return result;
     }
+
+    @LoginRequired
+    @PostMapping("/update")
+    public BaseResult updatetUpload(UpdateVo updateVo){
+        //imei=865602040244987&&version=N23-R03-ZKY-05B&&company=neoway&&project=N23&&token=bb34aba5562b56c97411a72f44d399f1 HTTP/1.1\r\n]
+        log.error(updateVo.toString());
+        BaseResult result = new BaseResult();
+        result.setAction("update");
+        result.setIMEI(updateVo.getImei());
+        result.setState("ok");
+        Map<String,String> res = hardwareService.updateUpload(updateVo);
+        result.setMessage(res.get("message"));
+        return result;
+    }
+
+
+//    @GetMapping("/checkRecord/list")
+//    public Result<CheckPage<CheckRecord>> checkRecordPage(CheckPage page,String IMEI){
+//        List<CheckRecord> data = null;
+//        if(IMEI == null || IMEI.length() < 10){
+//            data = hardwareService.findCheckRecords(page);
+//        }else {
+//            data = hardwareService.findCheckRecordsByImei(page,IMEI);
+//        }
+//        page.setDataList(data);
+//        return Result.success(page,"check");
+//    }
+
+    @GetMapping("/checkRecord/list/{IMEI}")
+    public Result<CheckPage<CheckRecord>> checkRecordPage(CheckPage page,@PathVariable("IMEI") String IMEI){
+        List<CheckRecord> data = null;
+        if(IMEI == null || IMEI.length() < 10){
+            data = hardwareService.findCheckRecords(page);
+        }else {
+            data = hardwareService.findCheckRecordsByImei(page,IMEI);
+        }
+        page.setDataList(data);
+        return Result.success(page,"check");
+    }
+    @GetMapping("/checkRecord/list/")
+    public Result<CheckPage<CheckRecord>> checkRecordPage(CheckPage page){
+        List<CheckRecord> data = null;
+        data = hardwareService.findCheckRecords(page);
+        page.setDataList(data);
+        return Result.success(page,"check");
+    }
+
+
 }
 

@@ -16,4 +16,5 @@ public class Task {
     private String Status;
     private Long UpdateStatusTs;
     private String delTag;
+    private String FileType;
 }

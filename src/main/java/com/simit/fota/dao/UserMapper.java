@@ -17,7 +17,7 @@ public interface UserMapper {
     @Select("select * from Users where user_id = #{userId} and enable != 2")
     User findUserByUserId(@Param("userId") Integer userId);
 
-    @Insert("insert into Users(username,password,Phone_Number,enable) values(#{username},#{password},#{Phone_Number},#{enable})")
+    @Insert("insert into Users(username,password,Phone_Number,enable) values(#{username},#{password},#{PhoneNumber},#{enable})")
     int insertUser(User user);
 
     @Update("update Users set password = #{password} where username = #{username}")

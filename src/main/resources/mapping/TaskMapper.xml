@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.simit.fota.dao.TaskMapper">
+
+
+    <update id="deleteTask">
+        update Task
+        set delTag = '1'
+        where Task_ID in(
+        <foreach collection="tasks" item="item" index="index" separator=",">
+            ${item}
+        </foreach>
+        )
+    </update>
+
+
+    <update id="deleteTaskInfo">
+        update Task_Info
+        set delTag = '1'
+        where ID in(
+        <foreach collection="tasks" item="item" index="index" separator=",">
+            ${item}
+        </foreach>
+        )
+    </update>
+
+</mapper>

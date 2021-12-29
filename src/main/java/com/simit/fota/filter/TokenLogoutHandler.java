@@ -7,6 +7,7 @@ import com.simit.fota.result.Result;
 import com.simit.fota.util.JWTTokenUtil;
 import com.simit.fota.util.ResponseUtil;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
@@ -17,6 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 
 //退出处理器
 @AllArgsConstructor
+@Slf4j
 public class TokenLogoutHandler implements LogoutHandler {
 
 
@@ -29,6 +31,7 @@ public class TokenLogoutHandler implements LogoutHandler {
         //2 token不为空，移除token，从redis删除token
         String token = request.getHeader("token");
         if(token != null) {
+            log.error(token);
             //移除
             JWTTokenUtil.removeToken(token);
             //从token获取用户名

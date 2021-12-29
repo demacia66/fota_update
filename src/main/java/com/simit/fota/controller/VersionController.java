@@ -8,6 +8,7 @@ import com.simit.fota.result.Page;
 import com.simit.fota.result.Result;
 import com.simit.fota.service.ProjectService;
 import com.simit.fota.service.VersionService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.xmlbeans.impl.xb.ltgfmt.Code;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import sun.rmi.runtime.Log;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
@@ -26,6 +28,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/fota/api/ver")
+
+@Slf4j
 public class VersionController {
 
     @Autowired
@@ -84,8 +88,8 @@ public class VersionController {
      * @param fotaProjectId 项目id
      * @return
      */
-    @GetMapping("/list")
-    public Result<Page<Version>> versionList(Page page, @RequestParam("Fota_Project_ID") Integer fotaProjectId) {
+    @GetMapping("/list/{Fota_Project_ID}")
+    public Result<Page<Version>> versionList(Page page, @PathVariable("Fota_Project_ID") Integer fotaProjectId) {
         if (fotaProjectId == null) {
             throw new GlobalException(CodeMsg.PROJECT_ID_EMPTY);
         }
@@ -102,6 +106,7 @@ public class VersionController {
     @PostMapping("/add")
     public Result<Boolean> createVersion(VersionUpload versionUpload, Integer Fota_Project_ID) {
 
+        log.error("kaishi");
 
         if (Fota_Project_ID != null) {
             versionUpload.setFotaProjectID(Fota_Project_ID);
@@ -112,7 +117,7 @@ public class VersionController {
         if (versionUpload.getFotaProjectID() == null) {
             return Result.error(CodeMsg.PROJECT_ID_EMPTY, "version");
         }
-        if (StringUtils.isEmpty(versionUpload.getVersionName())) {
+        if (StringUtils.isEmpty(versionUpload.getVersion_Name())) {
             return Result.error(CodeMsg.VERSION_NAME_EMPTY, "version");
         }
         if (StringUtils.isEmpty(versionUpload.getPreVersion())) {
@@ -157,11 +162,10 @@ public class VersionController {
     }
 
     @GetMapping("/download")
-    @LoginRequired
-    public Result<Boolean> downloadFile(String fileName, HttpServletResponse response) {
-        System.out.println(fileName);
-        System.out.println(uploadPath + "\\" + fileName);
-        File file = new File(uploadPath + "\\" + fileName);
+//    @LoginRequired
+    public void downloadFile(String fileName, HttpServletResponse response) {
+        log.error("开始下载");
+        File file = new File(uploadPath + "/" + fileName);
         if (file.exists()) {
             response.setContentType("application/force-download");
             response.addHeader("Content-Disposition", "attachment;fileName=" + fileName);
@@ -183,11 +187,11 @@ public class VersionController {
         } else {
             throw new GlobalException(CodeMsg.FILE_NOT_EXIST);
         }
-        return Result.success(true, "download");
+
     }
 
 
-    @PutMapping("/edit/{Fota_Project_ID}/{Version_ID}")
+    @PostMapping("/edit/{Fota_Project_ID}/{Version_ID}")
     public Result<Boolean> updateVersion(VersionUpload versionUpload,@PathVariable("Fota_Project_ID") Integer projectId,@PathVariable("Version_ID") Integer versionId){
         if (projectId == null){
             throw new GlobalException(CodeMsg.PROJECT_ID_EMPTY);
@@ -195,6 +199,7 @@ public class VersionController {
         if (versionId == null){
             throw new GlobalException(CodeMsg.VERSIONID_EMPTY);
         }
+        versionUpload.setFotaProjectID(projectId);
         versionService.doUpdate(versionUpload,projectId,versionId);
         return Result.success(true,"version");
     }
@@ -202,6 +207,7 @@ public class VersionController {
 
     @GetMapping("/edit/{Fota_Project_ID}/{Version_ID}")
     public Result<Version> getVersionAttribute(@PathVariable("Fota_Project_ID") Integer projectId,@PathVariable("Version_ID") Integer versionId){
+        log.error("开始下载");
         if (projectId == null){
             throw new GlobalException(CodeMsg.PROJECT_ID_EMPTY);
         }

@@ -1,19 +1,15 @@
 package com.simit.fota.controller;
 
-import com.simit.fota.entity.Device;
-import com.simit.fota.entity.IMEIKV;
-import com.simit.fota.entity.NetworkType;
-import com.simit.fota.entity.User;
+import com.simit.fota.entity.*;
 import com.simit.fota.exception.GlobalException;
 import com.simit.fota.result.CodeMsg;
 import com.simit.fota.result.Page;
 import com.simit.fota.result.Result;
-import com.simit.fota.service.BrandService;
-import com.simit.fota.service.DeviceService;
-import com.simit.fota.service.NetworkTypeService;
+import com.simit.fota.service.*;
 import com.simit.fota.util.ExcelRead;
 
 
+import com.simit.fota.util.JWTTokenUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
@@ -52,6 +48,16 @@ public class DeviceController {
     @Autowired
     private NetworkTypeService typeService;
 
+    @Autowired
+    private VersionService versionService;
+
+    @Autowired
+    private ProjectService projectService;
+
+    @Autowired
+    private TaskService taskService;
+
+
     @PostMapping("/add")
     @ApiOperation("添加设备")
     @ApiImplicitParam(name = "device",value = "设备实体device类",required = true,dataType = "Device")
@@ -67,9 +73,14 @@ public class DeviceController {
         return Result.success(device,"attribute");
     }
 
-    @GetMapping("/list")
+    @GetMapping("/list/")
     public Result<Page<Device>> deviceList(Page page){
         Page<Device> result = deviceService.getDeviceList(page);
+        return Result.success(result,"list");
+    }
+    @GetMapping("/list/{imei}")
+    public Result<Page<Device>> deviceList(Page page,@PathVariable("imei") String imei){
+        Page<Device> result = deviceService.getDeviceList(page,imei);
         return Result.success(result,"list");
     }
 
@@ -104,6 +115,58 @@ public class DeviceController {
             throw new GlobalException(CodeMsg.NOT_ALLOWED_EMPTY_FILE);
         }
         deviceService.importDevices(file);
+        return Result.success(true,"csv");
+    }
+
+    //导入升级
+    @RequestMapping(value = "/import/{flag}",method = RequestMethod.POST)
+    public Result<Boolean> importDevicesTask(MultipartFile file, ImportInfo importInfo,@PathVariable("flag") boolean flag,HttpServletRequest request) throws IllegalAccessException, IntrospectionException, IOException, InstantiationException, InvocationTargetException, NoSuchFieldException, ServletException {
+
+        String token = (String) request.getAttribute("token");
+
+
+        if(!flag){
+            return importDevices(file);
+        }
+
+        if (file == null){
+            throw new GlobalException(CodeMsg.NOT_ALLOWED_EMPTY_FILE);
+        }
+
+        if (importInfo == null){
+            throw new GlobalException(CodeMsg.PARAM_ERROR);
+        }
+
+        if (StringUtils.isEmpty(importInfo.getFota_Project_Name())||StringUtils.isEmpty(importInfo.getFota_Project_Name())||StringUtils.isEmpty(importInfo.getFile_Type())){
+            throw new GlobalException(CodeMsg.PARAM_ERROR);
+        }
+
+        FotaProject project = projectService.findProjectByName(importInfo.getFota_Project_Name());
+        if (project == null){
+            throw new GlobalException(CodeMsg.PROJECT_NOT_EXIST);
+        }
+        Version version = versionService.findVersionByPidVname(project.getID(), importInfo.getVersion_Name());
+        if (version == null){
+            throw new GlobalException(CodeMsg.VERSION_NOT_EXIST);
+        }
+        VersionFiles fileByType = versionService.findFileByType(version.getID(), project.getID(), importInfo.getFile_Type());
+        if (fileByType == null){
+            throw new GlobalException(CodeMsg.FILE_NOT_EXIST);
+        }
+
+        List<Device> deviceList = deviceService.importDevices(file);
+
+        TaskVo taskVo = new TaskVo();
+        taskVo.setFileType(importInfo.getFile_Type());
+        taskVo.setFotaProjectName(importInfo.getFota_Project_Name());
+        taskVo.setVersionName(importInfo.getVersion_Name());
+        List<String> list = new ArrayList<>();
+        for (Device cur : deviceList){
+            list.add(cur.getIMEI());
+        }
+        taskVo.setImeis(list);
+        taskService.createTask(taskVo,"01", JWTTokenUtil.getUserInfoFromToken(token));
+
         return Result.success(true,"csv");
     }
 

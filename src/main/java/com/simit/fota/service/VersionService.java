@@ -7,6 +7,9 @@ import com.simit.fota.result.CodeMsg;
 import com.simit.fota.result.Page;
 import com.simit.fota.util.DateFormatUtil;
 import com.simit.fota.util.FotaUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPReply;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -22,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Slf4j
 public class VersionService {
     @Autowired
     private VersionMapper versionMapper;
@@ -38,6 +42,20 @@ public class VersionService {
     @Value("${fullfile}")
     private String fullFile1;
 
+    @Value("${fileUploadPath}")
+    private String fileUploadPath;
+
+    @Value("${ftpHost}")
+    private String ftpHost;
+
+    @Value("${ftpPort}")
+    private int ftpPort;
+
+    @Value("${ftpUsername}")
+    private String ftpUsername;
+
+    @Value("${ftpPassword}")
+    private String ftpPassword;
 
     public void deleteProjectVersion(Integer projectId){
         versionMapper.delVersionByPid(projectId);
@@ -146,14 +164,24 @@ public class VersionService {
             page = new Page(totalCount, page.getCurrentPage(), page.getPageSize());
             page.setOrderType("desc");
         }
+        page.setTotalCount(totalCount);
 
         //找到项目的版本列表
+        Version initialVersion = findInitialVersion(fotaProjectId);
+        Version latestVersion = versionMapper.findLatestVersion(fotaProjectId);
         List<VersionVo> versionList = versionMapper.findVersionsByPId(fotaProjectId, page);
         if (versionList == null) {
             versionList = new ArrayList<>();
         }
         for (VersionVo cur:versionList){
             cur.setTs(DateFormatUtil.formatDate(cur.getCreateTs()));
+            if (cur.getID().equals(initialVersion.getID())){
+                cur.setFlag("1");
+            }else if (cur.getID().equals(latestVersion.getID())){
+                cur.setFlag("2");
+            }else {
+                cur.setFlag("0");
+            }
         }
         page.setDataList(versionList);
         return page;
@@ -174,6 +202,11 @@ public class VersionService {
         versionMapper.updateVersionById(version);
     }
 
+
+    public int findSwlrse(String version){
+        return versionMapper.findVersionName(version);
+    }
+
     /**
      * 创建新版本并存放文件
      *
@@ -181,7 +214,7 @@ public class VersionService {
      */
     @Transactional(rollbackFor = Exception.class)
     public void addVersion(VersionUpload versionUpload) {
-        int versionId = createVersion(versionUpload.getFotaProjectID(), versionUpload.getVersionName(), versionUpload.getDescription());
+        int versionId = createVersion(versionUpload.getFotaProjectID(), versionUpload.getVersion_Name(), versionUpload.getDescription());
         MultipartFile fullFile = versionUpload.getFullFile();
         if (fullFile != null) {
             VersionFiles versionFiles = uploadFile(fullFile);
@@ -196,6 +229,7 @@ public class VersionService {
             VersionFiles versionFiles = uploadFile(differFile);
             versionFiles.setFileType("0");
             versionFiles.setFotaProjectID(versionUpload.getFotaProjectID());
+            versionFiles.setVersionID(versionId);
             versionMapper.insertVersionFile(versionFiles);
         }
         Version preVersion = versionMapper.findVersionByNameId(versionUpload.getPreVersion(),versionUpload.getFotaProjectID());
@@ -218,17 +252,18 @@ public class VersionService {
         String fileName = file.getOriginalFilename();
         String fileType = fileName.substring(fileName.lastIndexOf("."));
         fileName = FotaUtil.generateUUID() + fileType;
-        File dest = new File(uploadPath + "/" + fileName);
+//        File dest = new File(uploadPath + "/" + fileName);
         try {
             InputStream is = file.getInputStream();
-            file.transferTo(dest);
+//            file.transferTo(dest);
+            uploadFile(fileName,is);
             is.mark(0);
             String md5 = DigestUtils.md5DigestAsHex(is);
             VersionFiles versionFiles = new VersionFiles();
             versionFiles.setFileMD5(md5);
             versionFiles.setFileName(fileName);
             versionFiles.setUploadTs(System.currentTimeMillis());
-            versionFiles.setFileURL("/fota/api/ver/download?fileName=" + fileName);
+            versionFiles.setFileURL(fileName);
             return versionFiles;
         } catch (IOException e) {
             e.printStackTrace();
@@ -246,6 +281,7 @@ public class VersionService {
     }
 
     @Transactional(rollbackFor = Exception.class)
+
     public void doUpdate(VersionUpload versionUpload, Integer projectId, Integer versionId) {
         Version version = new Version();
         version.setID(versionId);
@@ -256,10 +292,10 @@ public class VersionService {
             throw new GlobalException(CodeMsg.VERSION_NOT_EXIST);
         }
 
-        if (StringUtils.isEmpty(versionUpload.getVersionName())){
+        if (StringUtils.isEmpty(versionUpload.getVersion_Name())){
             version.setVersionName(findVersion.getVersionName());
         }else {
-            version.setVersionName(versionUpload.getVersionName());
+            version.setVersionName(versionUpload.getVersion_Name());
         }
 
         if (StringUtils.isEmpty(versionUpload.getDescription())){
@@ -272,13 +308,19 @@ public class VersionService {
         versionMapper.updateVersionById(version);
 
 
+
         MultipartFile fullFile = versionUpload.getFullFile();
         if (fullFile != null) {
             VersionFiles versionFiles = uploadFile(fullFile);
             versionFiles.setFileType("1");
             versionFiles.setFotaProjectID(versionUpload.getFotaProjectID());
             versionFiles.setVersionID(versionId);
-            versionMapper.updateVersionFile(versionFiles);
+            VersionFiles versionFile = versionMapper.findfullFile(versionId, projectId);
+            if (versionFile == null){
+                versionMapper.insertVersionFile(versionFiles);
+            }else {
+                versionMapper.updateVersionFile(versionFiles);
+            }
         }
 
         MultipartFile differFile = versionUpload.getDifferFile();
@@ -286,7 +328,12 @@ public class VersionService {
             VersionFiles versionFiles = uploadFile(differFile);
             versionFiles.setFileType("0");
             versionFiles.setFotaProjectID(versionUpload.getFotaProjectID());
-            versionMapper.updateVersionFile(versionFiles);
+            VersionFiles versionFile = versionMapper.findDifferFile(versionId, projectId);
+            if (versionFile == null){
+                versionMapper.insertVersionFile(versionFiles);
+            }else {
+                versionMapper.updateVersionFile(versionFiles);
+            }
         }
     }
 
@@ -301,4 +348,55 @@ public class VersionService {
         versionByVId.setTs(DateFormatUtil.formatDate(versionByVId.getCreateTs()));
         return versionByVId;
     }
+
+    public VersionFiles findFileByType(Integer versionId,Integer projectId,String fileType){
+        VersionFiles versionFiles = null;
+        if (StringUtils.isEmpty(fileType)){
+            throw new GlobalException(CodeMsg.FILE_TYPE_EMPTY);
+        }
+        if (fullFile1.equals(fileType)){
+            return versionMapper.findfullFile(versionId, projectId);
+        }else {
+            return versionMapper.findDifferFile(versionId,projectId);
+        }
+    }
+
+    public boolean uploadFile(String filename, InputStream input){
+        boolean success = false;
+        FTPClient ftp = new FTPClient();
+        try {
+            int reply;
+            ftp.connect(ftpHost);// 连接FTP服务器
+            // 如果采用默认端口，可以使用ftp.connect(url)的方式直接连接FTP服务器
+            ftp.login(ftpUsername, ftpPassword);// 登录
+            reply = ftp.getReplyCode();
+            if (!FTPReply.isPositiveCompletion(reply)) {
+                ftp.disconnect();
+                return success;
+            }
+            ftp.setFileType(FTPClient.BINARY_FILE_TYPE);
+            ftp.makeDirectory(fileUploadPath);
+            ftp.changeWorkingDirectory(fileUploadPath);
+            //设置被动模式
+            ftp.enterLocalPassiveMode();
+            ftp.storeFile(filename, input);
+//            input.close();
+            ftp.logout();
+            success = true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (ftp.isConnected()) {
+                try {
+                    ftp.disconnect();
+                } catch (IOException ioe) {
+                }
+            }
+        }
+        return success;
+    }
+
+
+
+
 }
