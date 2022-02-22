@@ -91,6 +91,7 @@ public class ProjectController {
         return Result.success(true,"edit");
     }
 
+    //获取项目编辑的信息
     @GetMapping("/edit/{Fota_Project_ID}")
     public Result<ProjectAttribute> projectAttribute(@PathVariable("Fota_Project_ID") Integer FotaProjectID){
         if (FotaProjectID == null){

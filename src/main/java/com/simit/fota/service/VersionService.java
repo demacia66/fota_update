@@ -57,7 +57,7 @@ public class VersionService {
     @Value("${ftpPassword}")
     private String ftpPassword;
 
-    public void deleteProjectVersion(Integer projectId){
+    public void deleteProjectVersion(Integer projectId) {
         versionMapper.delVersionByPid(projectId);
         versionMapper.delVersionRelationByPid(projectId);
     }
@@ -73,26 +73,15 @@ public class VersionService {
         Version initialVersion = versionMapper.findInitialVersion(projectId);
 
         Version version = new Version();
-        Version preVersion = versionMapper.findVersionByNameId(versionName, projectId);
-        if (preVersion != null) {
-            if ("0".equals(preVersion.getDelTag())) {
-                throw new GlobalException(CodeMsg.VERSION_DUPLICATE);
-            }
-            preVersion.setCreateTs(System.currentTimeMillis());
-            preVersion.setDescription(description);
-            versionMapper.recoverVersion(preVersion);
-        }else {
-            version.setFotaProjectID(projectId);
-            version.setDelTag("0");
-            version.setVersionName(versionName);
-            version.setDescription(description);
-            version.setCreateTs(System.currentTimeMillis());
-            versionMapper.insertVersion(version);
-        }
-        if (preVersion != null){
-            version.setID(preVersion.getID());
-        }
-        if (initialVersion == null){
+//        Version preVersion = versionMapper.findVersionByNameId(versionName, projectId);
+//                throw new GlobalException(CodeMsg.VERSION_DUPLICATE);
+        version.setFotaProjectID(projectId);
+        version.setDelTag("0");
+        version.setVersionName(versionName);
+        version.setDescription(description);
+        version.setCreateTs(System.currentTimeMillis());
+        versionMapper.insertVersion(version);
+        if (initialVersion == null) {
             VersionRelation relation = new VersionRelation();
             relation.setFotaProjectID(projectId);
             relation.setDelTag("0");
@@ -130,11 +119,11 @@ public class VersionService {
         if (version1 != null && !"1".equals(version1.getDelTag())) {
             //删除版本和版本的关系
             Version initialVersion = findInitialVersion(version1.getFotaProjectID());
-            if (!(initialVersion == null) && initialVersion.getID().equals(version1.getID())){
+            if (!(initialVersion == null) && initialVersion.getID().equals(version1.getID())) {
                 throw new GlobalException(CodeMsg.DELETE_INTIAL_VERSION);
             }
             String curVersion = curVersion(version1.getFotaProjectID());
-            if (!curVersion.equals(version1.getVersionName())){
+            if (!curVersion.equals(version1.getVersionName())) {
                 throw new GlobalException(CodeMsg.DELETE_CURVERSION);
             }
             versionMapper.delVersion(version);
@@ -160,7 +149,7 @@ public class VersionService {
         if (page == null) {
             page = new Page();
             page.setOrderType("desc");
-        }else if (page.getOrderField() == null){
+        } else if (page.getOrderField() == null) {
             page = new Page(totalCount, page.getCurrentPage(), page.getPageSize());
             page.setOrderType("desc");
         }
@@ -173,13 +162,13 @@ public class VersionService {
         if (versionList == null) {
             versionList = new ArrayList<>();
         }
-        for (VersionVo cur:versionList){
+        for (VersionVo cur : versionList) {
             cur.setTs(DateFormatUtil.formatDate(cur.getCreateTs()));
-            if (cur.getID().equals(initialVersion.getID())){
+            if (cur.getID().equals(initialVersion.getID())) {
                 cur.setFlag("1");
-            }else if (cur.getID().equals(latestVersion.getID())){
+            } else if (cur.getID().equals(latestVersion.getID())) {
                 cur.setFlag("2");
-            }else {
+            } else {
                 cur.setFlag("0");
             }
         }
@@ -203,7 +192,7 @@ public class VersionService {
     }
 
 
-    public int findSwlrse(String version){
+    public int findSwlrse(String version) {
         return versionMapper.findVersionName(version);
     }
 
@@ -225,14 +214,15 @@ public class VersionService {
         }
 
         MultipartFile differFile = versionUpload.getDifferFile();
-        if (differFile != null){
+        if (differFile != null) {
             VersionFiles versionFiles = uploadFile(differFile);
             versionFiles.setFileType("0");
             versionFiles.setFotaProjectID(versionUpload.getFotaProjectID());
             versionFiles.setVersionID(versionId);
             versionMapper.insertVersionFile(versionFiles);
         }
-        Version preVersion = versionMapper.findVersionByNameId(versionUpload.getPreVersion(),versionUpload.getFotaProjectID());
+//        Version preVersion = versionMapper.findVersionByNameId(versionUpload.getPreVersion(), versionUpload.getFotaProjectID());
+        Version preVersion = findVersionById(versionUpload.getFotaProjectID(),versionUpload.getPreVersionId());
         VersionRelation relation = new VersionRelation();
         relation.setNextVersionID(0);
         relation.setVersionID(versionId);
@@ -256,7 +246,7 @@ public class VersionService {
         try {
             InputStream is = file.getInputStream();
 //            file.transferTo(dest);
-            uploadFile(fileName,is);
+            uploadFile(fileName, is);
             is.mark(0);
             String md5 = DigestUtils.md5DigestAsHex(is);
             VersionFiles versionFiles = new VersionFiles();
@@ -271,13 +261,18 @@ public class VersionService {
         }
     }
 
-    public List<String> findVersionsByPid(Integer id) {
+    public List<Version> findVersionsByPid(Integer id) {
 
         return versionMapper.findVersionNamesByPId(id);
     }
 
+    public List<String> findVersionsByPid1(Integer id) {
+
+        return versionMapper.findVersionNamesByPId1(id);
+    }
+
     public List<VersionFiles> findVersionFile(Integer fotaProjectID, Integer id) {
-        return versionMapper.findVersionFile(id,fotaProjectID);
+        return versionMapper.findVersionFile(id, fotaProjectID);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -288,25 +283,24 @@ public class VersionService {
         version.setFotaProjectID(projectId);
         Version findVersion = versionMapper.findVersionByVId(version);
 
-        if (findVersion == null){
+        if (findVersion == null) {
             throw new GlobalException(CodeMsg.VERSION_NOT_EXIST);
         }
 
-        if (StringUtils.isEmpty(versionUpload.getVersion_Name())){
+        if (StringUtils.isEmpty(versionUpload.getVersion_Name())) {
             version.setVersionName(findVersion.getVersionName());
-        }else {
+        } else {
             version.setVersionName(versionUpload.getVersion_Name());
         }
 
-        if (StringUtils.isEmpty(versionUpload.getDescription())){
+        if (StringUtils.isEmpty(versionUpload.getDescription())) {
             version.setDescription(findVersion.getDescription());
-        }else {
+        } else {
             version.setDescription(versionUpload.getDescription());
         }
 
 
         versionMapper.updateVersionById(version);
-
 
 
         MultipartFile fullFile = versionUpload.getFullFile();
@@ -316,22 +310,22 @@ public class VersionService {
             versionFiles.setFotaProjectID(versionUpload.getFotaProjectID());
             versionFiles.setVersionID(versionId);
             VersionFiles versionFile = versionMapper.findfullFile(versionId, projectId);
-            if (versionFile == null){
+            if (versionFile == null) {
                 versionMapper.insertVersionFile(versionFiles);
-            }else {
+            } else {
                 versionMapper.updateVersionFile(versionFiles);
             }
         }
 
         MultipartFile differFile = versionUpload.getDifferFile();
-        if (differFile != null){
+        if (differFile != null) {
             VersionFiles versionFiles = uploadFile(differFile);
             versionFiles.setFileType("0");
             versionFiles.setFotaProjectID(versionUpload.getFotaProjectID());
             VersionFiles versionFile = versionMapper.findDifferFile(versionId, projectId);
-            if (versionFile == null){
+            if (versionFile == null) {
                 versionMapper.insertVersionFile(versionFiles);
-            }else {
+            } else {
                 versionMapper.updateVersionFile(versionFiles);
             }
         }
@@ -342,26 +336,26 @@ public class VersionService {
         version.setID(versionId);
         version.setFotaProjectID(projectId);
         Version versionByVId = versionMapper.findVersionByVId(version);
-        if(versionByVId == null){
+        if (versionByVId == null) {
             throw new GlobalException(CodeMsg.VERSION_NOT_EXIST);
         }
         versionByVId.setTs(DateFormatUtil.formatDate(versionByVId.getCreateTs()));
         return versionByVId;
     }
 
-    public VersionFiles findFileByType(Integer versionId,Integer projectId,String fileType){
+    public VersionFiles findFileByType(Integer versionId, Integer projectId, String fileType) {
         VersionFiles versionFiles = null;
-        if (StringUtils.isEmpty(fileType)){
+        if (StringUtils.isEmpty(fileType)) {
             throw new GlobalException(CodeMsg.FILE_TYPE_EMPTY);
         }
-        if (fullFile1.equals(fileType)){
+        if (fullFile1.equals(fileType)) {
             return versionMapper.findfullFile(versionId, projectId);
-        }else {
-            return versionMapper.findDifferFile(versionId,projectId);
+        } else {
+            return versionMapper.findDifferFile(versionId, projectId);
         }
     }
 
-    public boolean uploadFile(String filename, InputStream input){
+    public boolean uploadFile(String filename, InputStream input) {
         boolean success = false;
         FTPClient ftp = new FTPClient();
         try {
@@ -395,8 +389,6 @@ public class VersionService {
         }
         return success;
     }
-
-
 
 
 }

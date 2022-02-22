@@ -21,6 +21,7 @@ public class DeviceInterceptor implements HandlerInterceptor {
     @Autowired
     private RedisService redisService;
 
+    //验证设备鉴权的ticket
     @Override
     public boolean preHandle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object handler) throws Exception {
         if (handler instanceof HandlerMethod){

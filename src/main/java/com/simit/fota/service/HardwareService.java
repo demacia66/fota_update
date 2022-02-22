@@ -1,5 +1,6 @@
 package com.simit.fota.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.simit.fota.dao.DeviceMapper;
 import com.simit.fota.dao.HardWareMapper;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +30,9 @@ public class HardwareService {
 
     @Autowired
     private RedisService redisService;
+
+    @Autowired
+    private DeviceService deviceService;
 
     @Autowired
     private VersionService versionService;
@@ -74,7 +79,8 @@ public class HardwareService {
     public Map<String, String> doCheck(CheckVo checkVo) throws Exception {
         Map<String, String> res = new HashMap<>();
         CheckRecord checkRecord = new CheckRecord(checkVo);
-        redisService.insertZset(RedisKeyUtil.getCheckZsetKey(), JSONObject.toJSONString(checkRecord), (double) System.currentTimeMillis());
+        hardWareMapper.insertCheckRecord(checkRecord,JSONObject.toJSONString(checkRecord));
+//        redisService.insertZset(RedisKeyUtil.getCheckZsetKey(), JSONObject.toJSONString(checkRecord), (double) System.currentTimeMillis());
         redisService.pushList(RedisKeyUtil.getCheckListKey(checkVo.getId()),JSONObject.toJSONString(checkRecord));
         String IMEI = checkVo.getId();
         Device device = deviceMapper.findByIMEI(IMEI);
@@ -122,7 +128,7 @@ public class HardwareService {
 //            res.put("message", "no new version");
 //            return res;
 //        }
-        log.error(checkVo.toString());
+
         Version versionById = versionService.findVersionById(task.getFotaProjectID(), task.getVersionID());
 
         res.put("message", "new version");
@@ -171,27 +177,37 @@ public class HardwareService {
             return res;
         }
 
-        log.error(IMEI);
-        log.error(reportVo.getProductName());
-        log.error(reportVo.getCompany());
+//        log.error(IMEI);
+//        log.error(reportVo.getProductName());
+//        log.error(reportVo.getCompany());
 
         String upgradeResult = reportVo.getUpgradeResult();
         String result = null;
 
         if ("0".equals(upgradeResult)){
-            log.error("升级结果未知");
+//            log.error("升级结果未知");
             result = "05";
         }else if ("1".equals(upgradeResult)){
-            log.error("升级成功");
+//            log.error("升级成功");
             Version version = versionService.findVersionByPidVname(projectService.findProjectByName(reportVo.getProductName()).getID(), reportVo.getVersion());
             if (version != null){
                 device.setSWRlse(version.getVersionName());
                 deviceMapper.updateDevice(device);
+            }else{
+                Device device1 = deviceService.findDeviceByIMEI(IMEI);
+                if (device1 != null) {
+                    Task taskByIMEIID = taskService.findTaskByIMEIID(device1.getId());
+                    Integer versionID = taskByIMEIID.getVersionID();
+                    Integer fotaProjectID = taskByIMEIID.getFotaProjectID();
+                    Version version1 = versionService.findVersionById(fotaProjectID, versionID);
+                    device1.setSWRlse(version1.getVersionName());
+                    deviceService.doUpdate(IMEI,device1);
+                }
             }
             result = "04";
         }else {
             result = "06";
-            log.error("升级失败");
+//            log.error("升级失败");
         }
         if (!StringUtils.isEmpty(result) && "04".equals(result)){
             taskService.updateStatus(device.getId(),result);
@@ -234,10 +250,11 @@ public class HardwareService {
         if (version1.getVersionName().equals(curVersion)){
 
             result = "04";
-                device.setSWRlse(curVersion);
-                deviceMapper.updateDevice(device);
+            device.setSWRlse(curVersion);
+            deviceMapper.updateDevice(device);
         }else {
-            result = "06";
+            log.info("IMEI: "+ IMEI + ",可能失败,升级后的版本不正确为 + " + curVersion + "应为:" +version1.getVersionName());
+            result = "03";
         }
 
         if (!StringUtils.isEmpty(result) && "04".equals(result)){
@@ -248,8 +265,12 @@ public class HardwareService {
     }
 
     public List<CheckRecord> findCheckRecords(CheckPage page) {
-        page.setTotalCount(redisService.getZsetCount(RedisKeyUtil.getCheckZsetKey()));
-        List<CheckRecord> data = redisService.getZRange(RedisKeyUtil.getCheckZsetKey(), page.getStartRow(), (int) page.getPageSize(), CheckRecord.class);
+        page.setTotalCount(hardWareMapper.findCheckRecordCount());
+        List<String> datas = hardWareMapper.findCheckRecords( page.getStartRow(), (int) page.getPageSize());
+        List<CheckRecord> data = new ArrayList<>();
+        for (String cur:datas){
+            data.add(JSON.parseObject(cur,CheckRecord.class));
+        }
         return data;
     }
 

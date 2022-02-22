@@ -36,11 +36,12 @@ public class TokenAuthFilter extends BasicAuthenticationFilter {
         this.redisService = redisService;
     }
 
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
         //获取当前认证成功用户权限信息
         UsernamePasswordAuthenticationToken authRequest = null;
-        System.out.println(request.getRequestURL());
+//        System.out.println(request.getRequestURL());
         try {
             authRequest = getAuthentication(request);
         } catch (Exception e) {
@@ -54,6 +55,7 @@ public class TokenAuthFilter extends BasicAuthenticationFilter {
         chain.doFilter(request,response);
     }
 
+    //获取用户信息
     private UsernamePasswordAuthenticationToken getAuthentication(HttpServletRequest request) {
         //从header获取token
         Enumeration<String> headerNames = request.getHeaderNames();
@@ -70,7 +72,7 @@ public class TokenAuthFilter extends BasicAuthenticationFilter {
             request.setAttribute("token",token);
             //从token获取用户名
             String username = JWTTokenUtil.getUserInfoFromToken(token);
-            System.out.println(username);
+//            System.out.println(username);
             //从redis获取对应权限列表
             List<String> permissionValueList = redisService.get(UserKey.getByName,username);
 

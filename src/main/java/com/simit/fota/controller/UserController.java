@@ -30,6 +30,7 @@ public class UserController {
     @Autowired
     private DefaultPasswordEncoder passwordEncoder;
 
+    //用户注册
     @PostMapping("/signup")
     public Result<Boolean> signup(@RequestBody User user){
 
@@ -56,6 +57,7 @@ public class UserController {
         return Result.success(CodeMsg.Sign_SUCCESS,"sign");
     }
 
+    //改变登录密码
     @PutMapping("/changepassword")
     public Result<Boolean> changePassword(@RequestBody OldUser olduser, HttpServletRequest request){
         String username = olduser.getUsername();
@@ -81,6 +83,7 @@ public class UserController {
         return Result.success(true,"password");
     }
 
+    //获取登录信息
     @GetMapping("/info")
     public Result<Map<String, Object>> getUserInfo(HttpServletRequest request){
         String token = request.getHeader("token");
@@ -99,6 +102,7 @@ public class UserController {
         return Result.success(true,"activate");
     }
 
+    //删除信息
     @PreAuthorize("hasAuthority('admin')")
     @DeleteMapping("/delete/{userId}")
     public Result<Boolean> deleteUser(@PathVariable("userId") Integer userId){

@@ -16,9 +16,11 @@ public class VersionUpload {
 
     private String Version_Name;
 
+
     private Integer FotaProjectID;
 
     private String preVersion;
+    private Integer preVersionId;
 
     private String Description;
 

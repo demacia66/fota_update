@@ -1,9 +1,6 @@
 package com.simit.fota.service;
 
-import com.simit.fota.dao.DeviceMapper;
-import com.simit.fota.dao.ManufacturerBrandMapper;
-import com.simit.fota.dao.NetworkTypeMapper;
-import com.simit.fota.dao.ProjectMapper;
+import com.simit.fota.dao.*;
 import com.simit.fota.entity.*;
 import com.simit.fota.exception.GlobalException;
 import com.simit.fota.result.CodeMsg;
@@ -35,6 +32,9 @@ public class DeviceService {
 
     @Autowired
     private BrandService brandService;
+
+    @Autowired
+    private UDPMapper udpMapper;
 
     @Autowired
     private NetworkTypeService typeService;
@@ -232,7 +232,7 @@ public class DeviceService {
     @Transactional(rollbackFor = Exception.class)
     public void insertOrUpdateDevice(List<Device> deviceList) {
         for (Device device : deviceList) {
-            System.out.println(device);
+
             //看看是否以前存在这个设备
             try {
                 Device cur = deviceMapper.findDeviceWithDelete(device);
@@ -301,6 +301,34 @@ public class DeviceService {
             device.setCreate_ts(DateFormatUtil.formatDate(device.getCreateTs()));
         }
         page.setDataList(devices);
+        return page;
+    }
+
+    public Page<UDPReport> getUdpDeviceReport(String imei, Page page) {
+        int totalCount = udpMapper.findUDPReportCount(imei);
+
+        if (page == null) {
+            page = new Page();
+            page.setOrderField("ts");
+            page.setOrderType("desc");
+        }else if (page.getOrderField() == null || page.getOrderField().equals("ID")){
+            page = new Page(totalCount, page.getCurrentPage(), page.getPageSize());
+            page.setOrderField("ts");
+            page.setOrderType("desc");
+        }else {
+            page = new Page(totalCount,page.getOrderType(),page.getOrderField(),page.getCurrentPage(),page.getPageSize());
+        }
+
+
+        List<UDPReport> pageData = udpMapper.findUDPReportByIMEI(imei,page);
+//        for (UDPReport cur : pageData) {
+//            if (cur.getTs() != null) {
+//                cur.setReportTs(DateFormatUtil.formatDate(cur.getTs()));
+//            }
+//        }
+
+        page.setDataList(pageData);
+
         return page;
     }
 }

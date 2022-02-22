@@ -24,7 +24,9 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/fota/api/ver")
@@ -41,17 +43,14 @@ public class VersionController {
     @Value("${file.upload-dir}")
     private String uploadPath;
 
-    /**
-     * 删除版本
-     *
-     * @param version 封装项目id和版本id
-     * @return
-     */
+    //删除版本
     @DeleteMapping("/del/{Fota_Project_ID}/{Version_ID}")
-    public Result<Boolean> deleteVersion(@RequestBody Version version,@PathVariable("Fota_Project_ID") Integer fotaProjectId,@PathVariable("Version_ID") Integer versionId) {
-        if (version == null) {
-            throw new GlobalException(CodeMsg.PARAM_ERROR);
-        }
+    public Result<Boolean> deleteVersion(@PathVariable("Fota_Project_ID") Integer fotaProjectId,@PathVariable("Version_ID") Integer versionId) {
+        //@RequestBody Version version
+        Version version = new Version();
+//        if (version == null) {
+//            throw new GlobalException(CodeMsg.PARAM_ERROR);
+//        }
         version.setFotaProjectID(fotaProjectId);
         version.setID(versionId);
         if (version.getFotaProjectID() == null) {
@@ -64,21 +63,56 @@ public class VersionController {
         return Result.success(true, "version");
     }
 
-    /**
-     * @param fotaProjectName
-     * @return
-     */
-    @GetMapping("/versions/{fotaProjectName}")
-    public Result<List<String>> versions(@PathVariable("fotaProjectName") String fotaProjectName) {
-        FotaProject project = projectService.findProjectByName(fotaProjectName);
-        List<String> res = new ArrayList<>();
+
+    //对应项目的版本列表
+    @GetMapping("/versions/{fotaProjectId}")
+    public Result<List<Map<String,String>>> versions(@PathVariable("fotaProjectId") Integer fotaProjectID) {
+        FotaProject project = projectService.findProjectById(fotaProjectID);
+        List<Version> cur = new ArrayList<>();
         if (project != null) {
-            res = versionService.findVersionsByPid(project.getID());
+            cur = versionService.findVersionsByPid(project.getID());
         }
-        if (res == null) {
-            res = new ArrayList<>();
+        if (cur == null) {
+            cur = new ArrayList<>();
+        }
+        List<Map<String,String>> res = new ArrayList<>();
+        for(Version version : cur) {
+            Map<String,String> map = new HashMap<>();
+            map.put("id",version.getID().toString());
+            map.put("version",version.getVersionName());
+            res.add(map);
         }
         return Result.success(res, "versions");
+    }
+
+    //对应项目名的版本列表
+    @GetMapping("/versions1/{projectName}")
+    public Result<List<Map<String,String>>> versions1(@PathVariable("projectName") String projectName) {
+        FotaProject project = projectService.findProjectByName(projectName);
+//        List<String> cur = new ArrayList<>();
+//        if (project != null) {
+//            cur = versionService.findVersionsByPid1(project.getID());
+//        }
+//        if (cur == null) {
+//            cur = new ArrayList<>();
+//        }
+        List<Version> cur = new ArrayList<>();
+        if (project != null) {
+            cur = versionService.findVersionsByPid(project.getID());
+        }
+        if (cur == null) {
+            cur = new ArrayList<>();
+        }
+        List<Map<String,String>> res = new ArrayList<>();
+        for(Version version : cur) {
+            Map<String,String> map = new HashMap<>();
+            map.put("id",version.getID().toString());
+            map.put("version",version.getVersionName());
+            res.add(map);
+        }
+        return Result.success(res, "versions");
+//
+//        return Result.success(cur, "versions");
     }
 
     /**
@@ -106,7 +140,8 @@ public class VersionController {
     @PostMapping("/add")
     public Result<Boolean> createVersion(VersionUpload versionUpload, Integer Fota_Project_ID) {
 
-        log.error("kaishi");
+
+        log.error(versionUpload.getPreVersionId().toString());
 
         if (Fota_Project_ID != null) {
             versionUpload.setFotaProjectID(Fota_Project_ID);
@@ -117,12 +152,14 @@ public class VersionController {
         if (versionUpload.getFotaProjectID() == null) {
             return Result.error(CodeMsg.PROJECT_ID_EMPTY, "version");
         }
+
         if (StringUtils.isEmpty(versionUpload.getVersion_Name())) {
             return Result.error(CodeMsg.VERSION_NAME_EMPTY, "version");
         }
-        if (StringUtils.isEmpty(versionUpload.getPreVersion())) {
-            return Result.error(CodeMsg.PREVERSION_EMPTY, "version");
-        }
+
+//        if (StringUtils.isEmpty(versionUpload.getPreVersion())) {
+//            return Result.error(CodeMsg.PREVERSION_EMPTY, "version");
+//        }
 
         //项目是否存在
         FotaProject projectById = projectService.findProjectById(versionUpload.getFotaProjectID());
@@ -131,7 +168,7 @@ public class VersionController {
         }
 
         //之前的版本是否存在
-        Version preVersion = versionService.findVersionByPidVname(versionUpload.getFotaProjectID(), versionUpload.getPreVersion());
+        Version preVersion = versionService.findVersionById(versionUpload.getFotaProjectID(), versionUpload.getPreVersionId());
         if (preVersion == null) {
             return Result.error(CodeMsg.PREVERSION_NOT_EXIST, "version");
         }
@@ -161,6 +198,7 @@ public class VersionController {
         return Result.success(CodeMsg.VERSION_ADD_SUCCESS, "version");
     }
 
+    @Deprecated
     @GetMapping("/download")
 //    @LoginRequired
     public void downloadFile(String fileName, HttpServletResponse response) {
@@ -191,6 +229,7 @@ public class VersionController {
     }
 
 
+    //更改版本
     @PostMapping("/edit/{Fota_Project_ID}/{Version_ID}")
     public Result<Boolean> updateVersion(VersionUpload versionUpload,@PathVariable("Fota_Project_ID") Integer projectId,@PathVariable("Version_ID") Integer versionId){
         if (projectId == null){
@@ -205,6 +244,7 @@ public class VersionController {
     }
 
 
+    //获取版本属性信息
     @GetMapping("/edit/{Fota_Project_ID}/{Version_ID}")
     public Result<Version> getVersionAttribute(@PathVariable("Fota_Project_ID") Integer projectId,@PathVariable("Version_ID") Integer versionId){
         log.error("开始下载");

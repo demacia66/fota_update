@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +32,11 @@ public class HardwareController {
     private TaskService taskService;
 
     @GetMapping("/authent")
-    public FotaResult deviceLogin(String id, String version){
+    //设备鉴权
+    public FotaResult deviceLogin(String id, String version, HttpServletRequest request){
+
+        //输出鉴权的参数信息
+        log.info("IMEI: " + id + ",version: " + version + ",访问了接口 " + request.getRequestURL() +  "  ,"  +  "进行了鉴权");
 
         String IMEI = id;
         FotaResult result = new FotaResult();
@@ -63,7 +68,7 @@ public class HardwareController {
         }
         result.setMessage(loginRes.get("message"));
         result.setMessage("");
-        log.info(loginRes.get("message"));
+        log.info("IMEI: " + id + ",version: " + version + " ,鉴权结果" + loginRes.get("message"));
         hardwareService.reportAuth(result);
         Integer IMEIID = taskService.findTaskByIMEI(IMEI);
         if (IMEIID != null){
@@ -75,9 +80,11 @@ public class HardwareController {
 
     @LoginRequired
     @GetMapping("/check")
+    //设备check，如果有对应的升级任务返回下载的url
     public CheckResult checkVersion(CheckVo checkVo, @RequestParam("product_name") String productName,
-                                    @RequestParam("product_version") String productVersion) throws Exception {
-        log.error("开始check");
+                                    @RequestParam("product_version") String productVersion,HttpServletRequest request) throws Exception {
+//        log.error("开始check");
+        log.info("IMEI: " + checkVo.getId() + ",version: " + productVersion + ",访问了接口 " + request.getRequestURL() +  "  ,"  +  "进行了check");
         CheckResult result = new CheckResult();
         result.setAction("check");
         result.setIMEI(checkVo.getId());
@@ -131,6 +138,8 @@ public class HardwareController {
 
         result.setFileMd5(res.get("file_md5"));
 
+        log.info("check返回的url " + result.getUrl());
+
         return result;
     }
 
@@ -138,8 +147,10 @@ public class HardwareController {
 
     @LoginRequired
     @PostMapping("/report")
-    public BaseResult reportUpload(ReportVo reportVo,@RequestParam("product_name") String productName,@RequestParam("upgrade_result") String upgradeResult){
+    //下载后的记录上报
+    public BaseResult reportUpload(ReportVo reportVo,@RequestParam("product_name") String productName,@RequestParam("upgrade_result") String upgradeResult,HttpServletRequest request){
         //imei=865602040244987&&version=N23-R03-ZKY-05B&&company=neoway&&project=N23&&token=bb34aba5562b56c97411a72f44d399f1 HTTP/1.1\r\n]
+        log.info("IMEI: " + reportVo.getId() + ",version: " + productName + ",访问了接口 " + request.getRequestURL() +  "  ,"  +  "进行了report," + "上报的结果为" + upgradeResult);
         BaseResult result = new BaseResult();
         reportVo.setProductName(productName);
         reportVo.setUpgradeResult(upgradeResult);
@@ -175,9 +186,12 @@ public class HardwareController {
 
     @LoginRequired
     @PostMapping("/update")
-    public BaseResult updatetUpload(UpdateVo updateVo){
+    //下载后的记录上报，目前设备端采用的
+    public BaseResult updatetUpload(UpdateVo updateVo,HttpServletRequest request){
         //imei=865602040244987&&version=N23-R03-ZKY-05B&&company=neoway&&project=N23&&token=bb34aba5562b56c97411a72f44d399f1 HTTP/1.1\r\n]
-        log.error(updateVo.toString());
+        log.info("IMEI: " + updateVo.getImei() + ",version: " + updateVo.getVersion() + ",访问了接口 " + request.getRequestURL() +  "  ,"  +  "进行了update上报");
+
+        log.info(updateVo.toString());
         BaseResult result = new BaseResult();
         result.setAction("update");
         result.setIMEI(updateVo.getImei());

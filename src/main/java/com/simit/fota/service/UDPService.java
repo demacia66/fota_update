@@ -21,10 +21,23 @@ public class UDPService {
         imeikv.setRSSI(udpReport.getRSSI());
         imeikv.setIMEI(udpReport.getIMEI());
         imeikv.setDeviceID(udpReport.getDeviceID());
+        imeikv.setTs(udpReport.getTs());
+        imeikv.setSWRlse(udpReport.getSWVersion());
+        doReport(imeikv);
+        udpMapper.insertUDPReport(udpReport);
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void doReport(IMEIKV imeikv){
+        if (imeikv.getIMEI().length() != 15) {
+            return;
+        }
+        IMEIKV imeiPre = udpMapper.findIMEI(imeikv);
         udpMapper.insertIMEI(imeikv);
+        if(imeiPre == null){
+            udpMapper.insertIMEILast(imeikv);
+        }else{
+            udpMapper.updateIMEILast(imeikv);
+        }
     }
 }

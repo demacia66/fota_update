@@ -20,6 +20,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
+//spring security 控制哪些需要登录
 public class TokenWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
@@ -92,6 +93,7 @@ public class TokenWebSecurityConfig extends WebSecurityConfigurerAdapter {
         web.ignoring().antMatchers("/fota/api/report");
         web.ignoring().antMatchers("/fota/api/ver/download");
         web.ignoring().antMatchers("/fota/api/update");
+        web.ignoring().antMatchers("/fota/api/udp/report");
 //        web.ignoring().antMatchers("/fota/api/checkRecord/**");
     }
 }

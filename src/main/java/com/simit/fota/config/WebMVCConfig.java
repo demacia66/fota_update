@@ -17,6 +17,7 @@ import org.springframework.web.servlet.config.annotation.*;
 import java.util.List;
 
 
+//没啥大用
 @Configuration
 public class WebMVCConfig implements WebMvcConfigurer {
 

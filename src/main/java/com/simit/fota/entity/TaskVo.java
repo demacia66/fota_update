@@ -16,6 +16,8 @@ public class TaskVo {
     private String FotaProjectName;
     @JsonProperty("Version_Name")
     private String versionName;
+    @JsonProperty("Version_Id")
+    private Integer versionId;
     @JsonProperty("File_Type")
     private String FileType;
 }

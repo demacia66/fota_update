@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
+//没用，测试用
 @RestController
 public class TestController {
 

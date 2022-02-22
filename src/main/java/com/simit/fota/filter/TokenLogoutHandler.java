@@ -31,7 +31,7 @@ public class TokenLogoutHandler implements LogoutHandler {
         //2 token不为空，移除token，从redis删除token
         String token = request.getHeader("token");
         if(token != null) {
-            log.error(token);
+
             //移除
             JWTTokenUtil.removeToken(token);
             //从token获取用户名

@@ -7,16 +7,19 @@ import com.simit.fota.result.CodeMsg;
 import com.simit.fota.result.Page;
 import com.simit.fota.result.TasksVo;
 import com.simit.fota.util.DateFormatUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import sun.rmi.runtime.Log;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Slf4j
 public class TaskService {
 
     @Autowired
@@ -37,6 +40,7 @@ public class TaskService {
     @Autowired
     private TaskMapper taskMapper;
 
+
     public void createTask(TaskVo taskVo,String creatorType,String creator) {
         String fotaProjectName = taskVo.getFotaProjectName();
         FotaProject projectByName = projectService.findProjectByName(fotaProjectName);
@@ -44,26 +48,41 @@ public class TaskService {
             throw new GlobalException(CodeMsg.PROJECT_NOT_EXIST);
         }
         String versionName = taskVo.getVersionName();
-        if (StringUtils.isEmpty(versionName)){
-            throw new GlobalException(CodeMsg.VERSION_NAME_EMPTY);
+//        if (StringUtils.isEmpty(versionName)){
+//            throw new GlobalException(CodeMsg.VERSION_NAME_EMPTY);
+//        }
+        Integer versionId = taskVo.getVersionId();
+        Version version = null;
+        log.error("here1");
+        if(versionId != null) {
+            version = versionService.findVersionById(projectByName.getID(),versionId);
+        }else {
+            version = versionService.findVersionByPidVname(projectByName.getID(), versionName);
         }
-        Version version = versionService.findVersionByPidVname(projectByName.getID(), versionName);
+
         if (version == null){
             throw new GlobalException(CodeMsg.VERSION_NOT_EXIST);
         }
+
         String fileType = taskVo.getFileType();
+
         if (StringUtils.isEmpty(fileType)){
             throw new GlobalException(CodeMsg.FILE_TYPE_EMPTY);
         }
+
         VersionFiles versionFiles = null;
         versionFiles = versionService.findFileByType(version.getID(),version.getFotaProjectID(),fileType);
+
         if (versionFiles == null){
             throw new GlobalException(CodeMsg.VERSION_NOT_EXIST);
         }
+
         List<String> imeis = taskVo.getImeis();
+
         if (imeis == null){
             throw new GlobalException(CodeMsg.IMEI_EMPTY);
         }
+
         List<Integer> imeiIds = deviceService.findIMEI(imeis);
         createTasks(imeiIds,projectByName.getID(),version.getID(),creatorType,creator,taskVo.getFileType());
     }

@@ -12,6 +12,7 @@ public class JedisConfig {
     @Autowired
     private RedisConfig redisConfig;
 
+    //配置redis连接池信息
     @Bean
     public JedisPool jedisPoolFactory(){
         JedisPoolConfig poolConfig = new JedisPoolConfig();

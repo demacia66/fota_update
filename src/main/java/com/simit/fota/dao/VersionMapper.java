@@ -94,8 +94,10 @@ public interface VersionMapper {
     @Select("select * from Version_Library where Fota_Project_ID = #{fotaProjectId} and delTag != '1' order by ${page.orderField} ${page.orderType} limit #{page.startRow},#{page.pageSize} ")
     List<VersionVo> findVersionsByPId(@Param("fotaProjectId") Integer fotaProjectId,@Param("page") Page page);
 
+    @Select("select * from Version_Library where Fota_Project_ID = #{fotaProjectId} and delTag != '1' order by ID ")
+    List<Version> findVersionNamesByPId(@Param("fotaProjectId") Integer fotaProjectId);
     @Select("select Version_Name from Version_Library where Fota_Project_ID = #{fotaProjectId} and delTag != '1' order by ID ")
-    List<String> findVersionNamesByPId(@Param("fotaProjectId") Integer fotaProjectId);
+    List<String> findVersionNamesByPId1(@Param("fotaProjectId") Integer fotaProjectId);
 
     @Select("select * from Version_Library where Fota_Project_ID = #{fotaProjectID} order by ID limit 1")
     Version findInitialVersion(@Param("fotaProjectID") Integer fotaProjectID);
